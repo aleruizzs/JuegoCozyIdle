@@ -9,12 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="style.css?v=1.1">
+    <script src="script.js?v=1.1" defer></script>
 </head>
 <body>
 
     <div class="game-container">
+        
+        <div id="weather-event-bar" class="hidden"></div>
         
         <div class="clicker-section">
             
@@ -24,12 +26,16 @@
                 <div class="stats-container">
                     <div id="leaf-count" class="stat-display">0</div>
                     <div class="stat-label">hojas recogidas</div>
+                    
+                    <div id="bellota-count" class="stat-display bellota">0</div>
+                    <div class="stat-label bellota">bellotas</div>
+                    
                     <div id="hps-count" class="stat-display">0.0</div>
                     <div class="stat-label">hojas por segundo</div>
                     <div id="hpc-count" class="stat-display hpc">1</div>
-                    <div class="stat-label">hojas por click</div>
+                    <div class="stat-label">hojas por clic</div>
                 </div>
-                </div>
+            </div>
 
             <div class="clicker-area">
                 <button id="clicker-button" class="clicker-button">🍂</button>
@@ -63,6 +69,7 @@
             <div class="store-tabs">
                 <button id="tab-store" class="tab-button active">Mejoras</button>
                 <button id="tab-achievements" class="tab-button">Logros</button>
+                <button id="tab-prestige" class="tab-button">Prestigio</button>
             </div>
             
             <div id="store-panel" class="tab-panel active">
@@ -76,16 +83,34 @@
                 <div id="achievements-container"></div>
             </div>
             
+            <div id="prestige-panel" class="tab-panel hidden">
+                <div class="prestige-info">
+                    <h3>Prestigio</h3>
+                    <p>Reinicia tu progreso (hojas y mejoras) para ganar <strong>Bellotas Doradas</strong> (🌰).</p>
+                    <p>Cada Bellota Dorada te da un <strong>+1%</strong> de bonus permanente a toda la producción (acumulativo).</p>
+                    <p>Necesitas <strong>1 Billón</strong> de hojas (total en esta partida) para reiniciar.</p>
+                    <hr>
+                    <p>Hojas totales (esta partida): <strong id="prestige-leaves-total">0</strong></p>
+                    <p>Ganarás al reiniciar: <strong id="prestige-gain" class="bellota">0 🌰</strong></p>
+                </div>
+                <button id="prestige-reset-button" disabled>Reiniciar por Prestigio</button>
+                <div id="prestige-upgrade-container">
+                    </div>
+            </div>
+            
             <div class="audio-controls">
                 <button id="music-toggle" class="audio-btn">Música: 🎵</button>
                 <button id="sfx-toggle" class="audio-btn">Sonidos: 🔊</button>
             </div>
         </div>
     </div>
+
     <div id="notification-container"></div>
+
     <audio id="music-lofi" src="audio/lofi-music.mp3" loop preload="auto"></audio>
     <audio id="sound-click" src="audio/click-sound.wav" preload="auto"></audio>
     <audio id="sound-buy" src="audio/buy-sound.wav" preload="auto"></audio>
+    <audio id="sound-prestige" src="audio/prestige-sound.wav" preload="auto"></audio>
 
 </body>
 </html>

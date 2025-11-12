@@ -16,236 +16,143 @@ document.addEventListener('DOMContentLoaded', () => {
     const sfxToggleBtn = document.getElementById('sfx-toggle');
     const buyAmountToggleBtn = document.getElementById('buy-amount-toggle');
 
-    // Pestañas y Logros
+    // Pestañas y Paneles
     const tabStore = document.getElementById('tab-store');
     const tabAchievements = document.getElementById('tab-achievements');
+    const tabPrestige = document.getElementById('tab-prestige');
     const storePanel = document.getElementById('store-panel');
     const achievementsPanel = document.getElementById('achievements-panel');
     const achievementsContainer = document.getElementById('achievements-container');
     const boostTimerDisplay = document.getElementById('boost-timer');
+    
+    // Prestigio
+    const prestigePanel = document.getElementById('prestige-panel');
+    const prestigeGainDisplay = document.getElementById('prestige-gain');
+    const prestigeTotalLeavesDisplay = document.getElementById('prestige-leaves-total');
+    const prestigeResetButton = document.getElementById('prestige-reset-button');
+    const prestigeUpgradeContainer = document.getElementById('prestige-upgrade-container');
+    const bellotaCountDisplay = document.getElementById('bellota-count');
+
+    // Clima
+    const weatherEventBar = document.getElementById('weather-event-bar');
 
     // --- 2. ESTADO DEL JUEGO ---
     let leaves = 0;
     let leavesPerSecond = 0;
     let leavesPerClick = 1;
-    let baseClickValue = 1; // Valor base de click antes de multiplicadores
+    let baseClickValue = 1;
     let lastSaveTime = Date.now();
     
-    // Estado de Audio y Compra
     let isMusicEnabled = true;
     let isSfxEnabled = true;
     const buyAmountModes = [1, 10, 'max'];
     let currentBuyModeIndex = 0;
 
-    // Boosts, Multiplicadores y Logros
+    // Multiplicadores y Boosts
     let globalMultiplier = 1;
     let boostEndTime = 0;
     let clickFrenzyMultiplier = 7;
-    
-    // --- NUEVAS ESTADÍSTICAS GLOBALES ---
+
+    // Estado de Prestigio
+    let bellotas = 0;
+    let totalLeavesPrestige = 0; // Hojas totales en esta run
+    const PRESTIGE_REQ = 1_000_000_000; // 1 Billón
+
+    // Eventos de Clima
+    let currentWeatherEvent = null;
+    let eventEndTime = 0;
+    const weatherEvents = [
+        { id: 'rain', name: '🌧️ Lluvia Ligera', duration: 60, target: 'hps', multiplier: 1.5, text: '¡La lluvia aumenta el HPS x1.5!' },
+        { id: 'wind', name: '💨 Racha de Viento', duration: 30, target: 'click', multiplier: 3, text: '¡El viento triplica el valor de tus Clics!' },
+        { id: 'sun', name: '☀️ Día Soleado', duration: 120, target: 'all', multiplier: 2, text: '¡Día perfecto! ¡Toda la producción x2!' }
+    ];
+
+    // Contadores Globales
     let totalLeavesCollected = 0;
     let totalClicks = 0;
     let totalGoldenLeavesClicked = 0;
 
-    // --- NUEVAS VARIABLES DE JUEGO ---
-    let goldenLeafSpawnTime = 40; // Tiempo base de aparición (segundos)
-    let goldenLeafRewardMultiplier = 1; // Multiplicador de recompensa
-    let goldenLeafDuration = 10; // Duración en pantalla
-
-    // --- NUEVO: Objeto para multiplicadores de logros ---
+    // Multiplicadores de Logros
     let achievementMultipliers = {
-        cesto: 1,
-        ardilla: 1,
-        arbol: 1,
-        viento: 1,
-        guantes: 1,
-        rastrillo: 1,
-        soplador: 1
+        cesto: 1, ardilla: 1, arbol: 1, viento: 1,
+        guantes: 1, rastrillo: 1, soplador: 1
     };
 
-const achievements = {
-        // Logros de Hojas
-        'leaf_10k': { 
-            name: 'Bolsillo Lleno', 
-            desc: 'Recoge un total de 10,000 hojas.', 
-            icon: '💰', 
-            unlocked: false, 
-            condition: () => totalLeavesCollected >= 10000,
-            reward: { text: '+1% de HPS y HPC global', effect: () => globalMultiplier *= 1.01 }
-        },
-        'leaf_1M': { 
-            name: 'Millonario de Hojas', 
-            desc: 'Recoge un total de 1,000,000 hojas.', 
-            icon: '🤑', 
-            unlocked: false, 
-            condition: () => totalLeavesCollected >= 1000000,
-            reward: { text: '+2% de HPS y HPC global', effect: () => globalMultiplier *= 1.02 }
-        },
-        'leaf_1B': { 
-            name: 'Magnate de Hojas', 
-            desc: 'Recoge un total de 1 Billón de hojas.', 
-            icon: '👑', 
-            unlocked: false, 
-            condition: () => totalLeavesCollected >= 1000000000,
-            reward: { text: '+10% de HPS y HPC global', effect: () => globalMultiplier *= 1.10 }
-        },
-        // Logros de Clicks
-        'click_100': { 
-            name: 'Dedo Ágil', 
-            desc: 'Haz clic 100 veces.', 
-            icon: '👆',
-            unlocked: false, 
-            condition: () => totalClicks >= 100,
-            reward: { text: '+1 al valor base de Clic', effect: () => baseClickValue++ }
-        },
-        'click_1000': { 
-            name: 'Dedo Dorado', 
-            desc: 'Haz clic 1,000 veces.', 
-            icon: '👉',
-            unlocked: false, 
-            condition: () => totalClicks >= 1000,
-            reward: { text: '+10 al valor base de Clic', effect: () => baseClickValue += 10 }
-        },
-        'click_100k': { 
-            name: 'Cliclista Olímpico', 
-            desc: 'Haz clic 100,000 veces.', 
-            icon: '🥇',
-            unlocked: false, 
-            condition: () => totalClicks >= 100000,
-            reward: { text: '+100 al valor base de Clic', effect: () => baseClickValue += 100 }
-        },
-        // Logros de HPS
-        'hps_100': { 
-            name: 'Piloto Automático', 
-            desc: 'Alcanza 100 Hojas por Segundo (HPS).', 
-            icon: '⏱️', 
-            unlocked: false, 
-            condition: () => leavesPerSecond >= 100,
-            reward: { text: '+2% de HPS y HPC global', effect: () => globalMultiplier *= 1.02 }
-        },
-        'hps_1k': { 
-            name: 'Velocidad de Escape', 
-            desc: 'Alcanza 1,000 Hojas por Segundo (HPS).', 
-            icon: '🚀', 
-            unlocked: false, 
-            condition: () => leavesPerSecond >= 1000,
-            reward: { text: 'El Frenesí de Clicks ahora es x10 (en lugar de x7)', effect: () => clickFrenzyMultiplier = 10 }
-        },
-        // Logros de Mejoras
-        'cesto_50': { 
-            name: 'Maestro de Cestos', 
-            desc: 'Compra 50 Cestos de Hojas.', 
-            icon: '🧺', 
-            unlocked: false, 
-            condition: () => (upgrades.find(u => u.id === 'cesto')?.count || 0) >= 50,
-            reward: { text: 'Los Cestos son un 100% más efectivos (x2)', effect: () => achievementMultipliers.cesto *= 2 }
-        },
-        'ardilla_50': { 
-            name: 'Líder de la Manada', 
-            desc: 'Compra 50 Ardillas Ayudantes.', 
-            icon: '🐿️', 
-            unlocked: false, 
-            condition: () => (upgrades.find(u => u.id === 'ardilla')?.count || 0) >= 50,
-            reward: { text: 'Las Ardillas son un 100% más efectivas (x2)', effect: () => achievementMultipliers.ardilla *= 2 }
-        },
-        'arbol_50': { 
-            name: 'Bosque Creciente', 
-            desc: 'Compra 50 Árboles Pequeños.', 
-            icon: '🌳', 
-            unlocked: false, 
-            condition: () => (upgrades.find(u => u.id === 'arbol')?.count || 0) >= 50,
-            reward: { text: 'Los Árboles son un 100% más efectivos (x2)', effect: () => achievementMultipliers.arbol *= 2 }
-        },
-        // Logros de Hoja Dorada
-        'golden_1': { 
-            name: '¡Qué Suerte!', 
-            desc: 'Haz clic en tu primera Hoja Dorada.', 
-            icon: '✨', 
-            unlocked: false, 
-            condition: () => totalGoldenLeavesClicked >= 1,
-            reward: { text: 'Las Hojas Doradas aparecen un 10% más rápido', effect: () => goldenLeafSpawnTime *= 0.9 }
-        },
-        'golden_10': { 
-            name: 'Cazador de Oro', 
-            desc: 'Haz clic en 10 Hojas Doradas.', 
-            icon: '🌟', 
-            unlocked: false, 
-            condition: () => totalGoldenLeavesClicked >= 10,
-            reward: { text: 'Las recompensas de Hojas Doradas se duplican (x2)', effect: () => goldenLeafRewardMultiplier *= 2 }
-        },
+    // Variables de Hoja Dorada
+    let goldenLeafSpawnTime = 40;
+    let goldenLeafRewardMultiplier = 1;
+    let goldenLeafDuration = 10;
+
+    // Definición de Logros
+    const achievements = {
+        'leaf_10k': { name: 'Bolsillo Lleno', desc: 'Recoge un total de 10,000 hojas.', icon: '💰', unlocked: false, condition: () => totalLeavesCollected >= 10000, reward: { text: '+1% HPS/HPC global', effect: () => globalMultiplier *= 1.01 }},
+        'leaf_1M': { name: 'Millonario de Hojas', desc: 'Recoge un total de 1,000,000 hojas.', icon: '🤑', unlocked: false, condition: () => totalLeavesCollected >= 1000000, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 }},
+        'leaf_1B': { name: 'Magnate de Hojas', desc: 'Recoge un total de 1 Billón de hojas.', icon: '👑', unlocked: false, condition: () => totalLeavesCollected >= 1000000000, reward: { text: '+10% HPS/HPC global', effect: () => globalMultiplier *= 1.10 }},
+        'click_100': { name: 'Dedo Ágil', desc: 'Haz clic 100 veces.', icon: '👆', unlocked: false, condition: () => totalClicks >= 100, reward: { text: '+1 al valor base de Clic', effect: () => baseClickValue++ }},
+        'click_1000': { name: 'Dedo Dorado', desc: 'Haz clic 1,000 veces.', icon: '👉', unlocked: false, condition: () => totalClicks >= 1000, reward: { text: '+10 al valor base de Clic', effect: () => baseClickValue += 10 }},
+        'click_100k': { name: 'Cliclista Olímpico', desc: 'Haz clic 100,000 veces.', icon: '🥇', unlocked: false, condition: () => totalClicks >= 100000, reward: { text: '+100 al valor base de Clic', effect: () => baseClickValue += 100 }},
+        'hps_100': { name: 'Piloto Automático', desc: 'Alcanza 100 HPS.', icon: '⏱️', unlocked: false, condition: () => leavesPerSecond >= 100, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 }},
+        'hps_1k': { name: 'Velocidad de Escape', desc: 'Alcanza 1,000 HPS.', icon: '🚀', unlocked: false, condition: () => leavesPerSecond >= 1000, reward: { text: 'El Frenesí de Clics ahora es x10', effect: () => clickFrenzyMultiplier = 10 }},
+        'cesto_50': { name: 'Maestro de Cestos', desc: 'Compra 50 Cestos.', icon: '🧺', unlocked: false, condition: () => (upgrades.find(u => u.id === 'cesto')?.count || 0) >= 50, reward: { text: 'Los Cestos x2', effect: () => achievementMultipliers.cesto *= 2 }},
+        'ardilla_50': { name: 'Líder de la Manada', desc: 'Compra 50 Ardillas.', icon: '🐿️', unlocked: false, condition: () => (upgrades.find(u => u.id === 'ardilla')?.count || 0) >= 50, reward: { text: 'Las Ardillas x2', effect: () => achievementMultipliers.ardilla *= 2 }},
+        'arbol_50': { name: 'Bosque Creciente', desc: 'Compra 50 Árboles.', icon: '🌳', unlocked: false, condition: () => (upgrades.find(u => u.id === 'arbol')?.count || 0) >= 50, reward: { text: 'Los Árboles x2', effect: () => achievementMultipliers.arbol *= 2 }},
+        'golden_1': { name: '¡Qué Suerte!', desc: 'Haz clic en 1 Hoja Dorada.', icon: '✨', unlocked: false, condition: () => totalGoldenLeavesClicked >= 1, reward: { text: 'Hojas Doradas 10% más rápido', effect: () => goldenLeafSpawnTime *= 0.9 }},
+        'golden_10': { name: 'Cazador de Oro', desc: 'Haz clic en 10 Hojas Doradas.', icon: '🌟', unlocked: false, condition: () => totalGoldenLeavesClicked >= 10, reward: { text: 'Recompensas de Hojas Doradas x2', effect: () => goldenLeafRewardMultiplier *= 2 }},
     };
 
-
-// --- AÑADE esto a tu objeto itemEmojis ---
+    // Mapeo de Emojis
     const itemEmojis = {
         'cesto': '🧺', 'ardilla': '🐿️', 'arbol': '🌳', 'viento': '💨',
         'guantes': '🧤', 'rastrillo': '🪒', 'soplador': '🌬️',
         'nidos': '🏡', 'rastrillo_titanio': '✨',
-        // --- NUEVOS ---
-        'vientos_huracanados': '🌪️',
-        'guantes_dorados': '🧤✨',
-        'otono_eterno': '👑'
+        'vientos_huracanados': '🌪️', 'guantes_dorados': '🧤✨', 'otono_eterno': '👑',
+        'cesta_misteriosa': '🎁'
     };
+    
+    // Slots de Escenario
     const scenerySlotMap = {
         'cesto': ['slot-cesto-1', 'slot-cesto-2', 'slot-cesto-3', 'slot-cesto-4', 'slot-cesto-5'],
         'ardilla': ['slot-ardilla-1', 'slot-ardilla-2', 'slot-ardilla-3', 'slot-ardilla-4'],
         'arbol': ['slot-arbol-1', 'slot-arbol-2', 'slot-arbol-3']
     };
 
-  // --- REEMPLAZA tu array 'upgrades' por este ---
+    // Definición de Mejoras
     let upgrades = [
-        // HPS
         { id: 'cesto', name: 'Cesto de Hojas', pluralName: 'Cestos de Hojas', baseCost: 10, type: 'hps', value: 0.1, count: 0 },
         { id: 'ardilla', name: 'Ardilla Ayudante', pluralName: 'Ardillas Ayudantes', baseCost: 100, type: 'hps', value: 1, count: 0 },
         { id: 'arbol', name: 'Árbol Pequeño', pluralName: 'Árboles Pequeños', baseCost: 1100, type: 'hps', value: 8, count: 0 },
         { id: 'viento', name: 'Viento de Otoño', pluralName: 'Vientos de Otoño', baseCost: 12000, type: 'hps', value: 47, count: 0 },
-        
-        // Clic
         { id: 'guantes', name: 'Guantes de Jardín', pluralName: 'Guantes de Jardín', baseCost: 50, type: 'click', value: 1, count: 0 },
         { id: 'rastrillo', name: 'Rastrillo', pluralName: 'Rastrillos', baseCost: 500, type: 'click', value: 5, count: 0 },
         { id: 'soplador', name: 'Soplador de Hojas', pluralName: 'Sopladores de Hojas', baseCost: 8000, type: 'click', value: 25, count: 0 },
-
-        // Multiplicadores
-        { 
-            id: 'nidos', 
-            name: 'Nidos Acogedores', pluralName: 'Nidos Acogedores', 
-            baseCost: 10000, type: 'multiplier', value: 2,
-            target: 'ardilla', count: 0, unlocked: false,
-            requirement: { id: 'ardilla', count: 25 }
-        },
-        { 
-            id: 'rastrillo_titanio', 
-            name: 'Rastrillo de Titanio', pluralName: 'Rastrillos de Titanio', 
-            baseCost: 50000, type: 'multiplier', value: 3,
-            target: 'rastrillo', count: 0, unlocked: false,
-            requirement: { id: 'rastrillo', count: 10 }
-        },
-        { 
-            id: 'vientos_huracanados', 
-            name: 'Vientos Huracanados', pluralName: 'Vientos Huracanados',
-            baseCost: 50000000, type: 'multiplier', value: 3,
-            target: 'viento', count: 0, unlocked: false,
-            requirement: { id: 'viento', count: 25 }
-        },
-        { 
-            id: 'guantes_dorados', 
-            name: 'Guantes Dorados', pluralName: 'Guantes Dorados',
-            baseCost: 75000000, type: 'multiplier', value: 5,
-            target: 'soplador', count: 0, unlocked: false,
-            requirement: { id: 'soplador', count: 25 }
-        },
-        { 
-            id: 'otono_eterno', 
-            name: 'Otoño Eterno', pluralName: 'Otoños Eternos',
-            baseCost: 1000000000, type: 'multiplier', value: 5,
-            target: 'arbol', count: 0, unlocked: false,
-            requirement: { id: 'arbol', count: 50 }
-        },
+        { id: 'nidos', name: 'Nidos Acogedores', pluralName: 'Nidos Acogedores', baseCost: 10000, type: 'multiplier', value: 2, target: 'ardilla', count: 0, unlocked: false, requirement: { id: 'ardilla', count: 25 }},
+        { id: 'rastrillo_titanio', name: 'Rastrillo de Titanio', pluralName: 'Rastrillos de Titanio', baseCost: 50000, type: 'multiplier', value: 3, target: 'rastrillo', count: 0, unlocked: false, requirement: { id: 'rastrillo', count: 10 }},
+        { id: 'vientos_huracanados', name: 'Vientos Huracanados', pluralName: 'Vientos Huracanados', baseCost: 50000000, type: 'multiplier', value: 3, target: 'viento', count: 0, unlocked: false, requirement: { id: 'viento', count: 25 }},
+        { id: 'guantes_dorados', name: 'Guantes Dorados', pluralName: 'Guantes Dorados', baseCost: 75000000, type: 'multiplier', value: 5, target: 'soplador', count: 0, unlocked: false, requirement: { id: 'soplador', count: 25 }},
+        { id: 'otono_eterno', name: 'Otoño Eterno', pluralName: 'Otoños Eternos', baseCost: 1000000000, type: 'multiplier', value: 5, target: 'arbol', count: 0, unlocked: false, requirement: { id: 'arbol', count: 50 }},
+        { id: 'cesta_misteriosa', name: 'Cesta Misteriosa', pluralName: 'Cestas Misteriosas', baseCost: 10000, type: 'consumable', value: 0, count: 0, unlocked: true }
     ];
+    
+    // Mejoras de Prestigio
+    let prestigeUpgrades = [
+        { id: 'perm_multi_1', name: 'Hojas Ancestrales', desc: 'Todas las hojas (HPS y HPC) valen +1% por nivel.', baseCost: 1, count: 0, maxLevel: -1 },
+        { id: 'perm_golden_1', name: 'Suerte del Bosque', desc: 'Las Hojas Doradas aparecen un 2% más rápido por nivel.', baseCost: 2, count: 0, maxLevel: 25 }, // 50% max
+        { id: 'perm_start_1', name: 'Rastrillo de Confianza', desc: 'Empiezas cada partida con 5 Rastrillos.', baseCost: 5, count: 0, maxLevel: 1 },
+    ];
+
 
     // --- 3. FUNCIONES DE LÓGICA DEL JUEGO ---
 
+// --- REEMPLAZA esta función ---
     function getUpgradeCost(upgrade, n) {
+        // --- MODIFICADO: Coste de la Cesta Misteriosa ---
+        if (upgrade.type === 'consumable') {
+            // El coste ahora es 10 minutos de HPS + 10,000 base
+            // Esto evita que se pueda "spamear"
+            return Math.floor(leavesPerSecond * 600) + 10000;
+        }
+        
+        // Lógica de coste normal (sin cambios)
         const baseCost = upgrade.baseCost;
         const count = upgrade.count;
         const rate = 1.15;
@@ -257,6 +164,8 @@ const achievements = {
     }
     
     function calculateMaxBuy(upgrade) {
+        if (upgrade.type === 'consumable') return 1;
+
         const baseCost = upgrade.baseCost;
         const count = upgrade.count;
         const rate = 1.15;
@@ -269,6 +178,18 @@ const achievements = {
 
     function buyUpgrade(upgradeIndex) {
         const upgrade = upgrades[upgradeIndex];
+        
+        if (upgrade.type === 'consumable') {
+            const cost = getUpgradeCost(upgrade, 1);
+            if (leaves >= cost) {
+                leaves -= cost;
+                playAudio(buySound);
+                openMysteryChest();
+                renderStore();
+            }
+            return;
+        }
+
         const buyAmount = buyAmountModes[currentBuyModeIndex];
         let amountToBuy = 0;
         let totalCost = 0;
@@ -310,12 +231,7 @@ const achievements = {
             renderStore();
             updateUI();
             playAudio(buySound);
-            // --- MODIFICADO: Usar notificación cozy ---
-            showNotification(
-                `¡Mejora Comprada!`, 
-                `${upgrade.name}`, 
-                itemEmojis[upgrade.id] || '✔️'
-            );
+            showNotification(`¡Mejora Comprada!`, `${upgrade.name}`, itemEmojis[upgrade.id] || '✔️');
         }
     }
 
@@ -327,7 +243,6 @@ const achievements = {
                 if (reqUpgrade && reqUpgrade.count >= up.requirement.count) {
                     up.unlocked = true;
                     storeNeedsRender = true;
-                    // No notificar si es carga de juego
                 }
             }
         });
@@ -337,72 +252,64 @@ const achievements = {
         }
     }
 
- // --- REEMPLAZA esta función ---
     function recalculateHPS() {
         let totalHPS = 0;
         let hpsGroups = {};
         
-        // 1. Base HPS
         upgrades.filter(u => u.type === 'hps').forEach(u => {
             let itemHPS = u.value * u.count;
-            
-            // 2. Aplicar multiplicadores de logros
             if (achievementMultipliers[u.id]) {
                 itemHPS *= achievementMultipliers[u.id];
             }
-            
             hpsGroups[u.id] = itemHPS;
         });
 
-        // 3. Aplicar multiplicadores de mejoras
         upgrades.filter(u => u.type === 'multiplier' && u.count > 0).forEach(mult => {
             if (hpsGroups[mult.target]) {
                 hpsGroups[mult.target] *= mult.value;
             }
         });
 
-        // 4. Sumar y aplicar multiplicador global
         for (const id in hpsGroups) {
             totalHPS += hpsGroups[id];
         }
         
-        leavesPerSecond = totalHPS * globalMultiplier;
+        const bellotaBonus = 1 + (bellotas * 0.01) + (prestigeUpgrades.find(p => p.id === 'perm_multi_1')?.count || 0) * 0.01;
+        const weatherBonus = (currentWeatherEvent && (currentWeatherEvent.target === 'hps' || currentWeatherEvent.target === 'all')) ? currentWeatherEvent.multiplier : 1;
+        
+        leavesPerSecond = totalHPS * globalMultiplier * bellotaBonus * weatherBonus;
     }
 
-    // --- REEMPLAZA esta función ---
     function recalculateHPC() {
-        let totalHPC = baseClickValue; // Empezar con el valor base
+        let totalHPC = baseClickValue;
         let hpcGroups = {};
         
-        // 1. Base HPC
         upgrades.filter(u => u.type === 'click').forEach(u => {
             let itemHPC = u.value * u.count;
-            // 2. Aplicar multiplicadores de logros
             if (achievementMultipliers[u.id]) {
                 itemHPC *= achievementMultipliers[u.id];
             }
             hpcGroups[u.id] = itemHPC;
         });
 
-        // 3. Aplicar multiplicadores de mejoras
         upgrades.filter(u => u.type === 'multiplier' && u.count > 0).forEach(mult => {
             if (hpcGroups[mult.target]) {
                 hpcGroups[mult.target] *= mult.value;
             }
         });
         
-        // 4. Sumar
         for (const id in hpcGroups) {
             totalHPC += hpcGroups[id];
         }
         
-        // 5. Aplicar multiplicador global
-        leavesPerClick = totalHPC * globalMultiplier;
+        const bellotaBonus = 1 + (bellotas * 0.01) + (prestigeUpgrades.find(p => p.id === 'perm_multi_1')?.count || 0) * 0.01;
+        const weatherBonus = (currentWeatherEvent && (currentWeatherEvent.target === 'click' || currentWeatherEvent.target === 'all')) ? currentWeatherEvent.multiplier : 1;
+        
+        leavesPerClick = totalHPC * globalMultiplier * bellotaBonus * weatherBonus;
     }
 
-    // click en Hoja
     function clickLeaf() {
-        totalClicks++; // Contar click
+        totalClicks++;
         
         let clickValue = leavesPerClick;
         
@@ -410,8 +317,10 @@ const achievements = {
             clickValue *= clickFrenzyMultiplier;
         }
         
-        leaves += clickValue;
-        totalLeavesCollected += clickValue; // Contar hojas
+        const leavesGained = clickValue;
+        leaves += leavesGained;
+        totalLeavesCollected += leavesGained;
+        totalLeavesPrestige += leavesGained;
         
         updateUI();
         playAudio(clickSound);
@@ -420,10 +329,12 @@ const achievements = {
         showFloatingNumber(clickValue, clickerButton);
     }
 
-    // Bucle Principal
     function gameLoop() {
-        leaves += leavesPerSecond;
-        totalLeavesCollected += leavesPerSecond; // Contar hojas
+        const leavesGained = leavesPerSecond;
+        leaves += leavesGained;
+        totalLeavesCollected += leavesGained;
+        totalLeavesPrestige += leavesGained;
+        
         updateUI();
 
         if (buyAmountModes[currentBuyModeIndex] === 'max') {
@@ -434,6 +345,11 @@ const achievements = {
 
         checkAchievements();
         updateBoostTimer();
+        updatePrestigePanel();
+        
+        if (currentWeatherEvent && Date.now() > eventEndTime) {
+            endWeatherEvent();
+        }
 
         if (isMusicEnabled && music.paused && !document.hidden) {
             music.play().catch(e => console.warn("Interacción de usuario necesaria para música."));
@@ -446,25 +362,21 @@ const achievements = {
         leafCountDisplay.textContent = Math.floor(leaves).toLocaleString('es');
         hpsCountDisplay.textContent = leavesPerSecond.toFixed(1).toLocaleString('es');
         hpcCountDisplay.textContent = Math.floor(leavesPerClick).toLocaleString('es');
+        bellotaCountDisplay.textContent = bellotas.toLocaleString('es');
     }
 
-// --- REEMPLAZA esta función ---
     function renderStore() {
         storeContainer.innerHTML = '';
         const buyAmount = buyAmountModes[currentBuyModeIndex];
-
-        // --- NUEVO: Títulos para las categorías ---
+        const typeOrder = { 'hps': 1, 'click': 2, 'multiplier': 3, 'consumable': 4 };
+        let currentType = null;
         const cozyTitles = {
             'hps': '🍂 Producción Pasiva',
-            'click': '👆 Mejoras de click',
-            'multiplier': '✨ Multiplicadores Raros'
+            'click': '👆 Mejoras de Clic',
+            'multiplier': '✨ Multiplicadores Raros',
+            'consumable': '🎁 Objetos Especiales'
         };
-        
-        // Rastreador para saber cuándo insertar un título
-        let currentType = null;
 
-        // Lógica de ordenación (sin cambios)
-        const typeOrder = { 'hps': 1, 'click': 2, 'multiplier': 3 };
         const sortedUpgrades = [...upgrades].sort((a, b) => {
             if (a.unlocked === false && b.unlocked !== false) return 1;
             if (a.unlocked !== false && b.unlocked === false) return -1;
@@ -474,40 +386,28 @@ const achievements = {
             return a.baseCost - b.baseCost;
         });
 
-        // Iterar sobre el array ORDENADO
         sortedUpgrades.forEach(upgrade => {
             const originalIndex = upgrades.findIndex(u => u.id === upgrade.id);
             
-            // --- INICIO DE LA LÓGICA DE CABECERA ---
-            // Comprobar si necesitamos insertar un nuevo título
             if (upgrade.unlocked === false) {
-                // Si es un item bloqueado
                 if (currentType !== 'locked') {
-                    currentType = 'locked'; // Marcar que hemos entrado a la sección bloqueada
+                    currentType = 'locked';
                     const header = document.createElement('h3');
                     header.className = 'store-header locked';
                     header.textContent = '🔒 Mejoras Bloqueadas';
                     storeContainer.appendChild(header);
                 }
             } else if (upgrade.type !== currentType) {
-                // Si es un item desbloqueado de un NUEVO tipo
-                currentType = upgrade.type; // Actualizar el tipo actual
+                currentType = upgrade.type;
                 const header = document.createElement('h3');
                 header.className = 'store-header';
                 header.textContent = cozyTitles[currentType] || 'Varios';
                 storeContainer.appendChild(header);
             }
-            // --- FIN DE LA LÓGICA DE CABECERA ---
 
-
-            // --- Renderizado del item (lógica sin cambios) ---
-            
-            // Si está bloqueado
             if (upgrade.unlocked === false) {
-                // --- NUEVO: Encontrar el nombre plural del requisito ---
                 const reqUpgrade = upgrades.find(u => u.id === upgrade.requirement.id);
-                const reqName = reqUpgrade ? reqUpgrade.pluralName : (upgrade.requirement.id + 's'); // Usar pluralName
-
+                const reqName = reqUpgrade ? reqUpgrade.pluralName : (upgrade.requirement.id + 's');
                 const item = document.createElement('div');
                 item.className = 'upgrade-item locked';
                 item.innerHTML = `
@@ -521,34 +421,47 @@ const achievements = {
                     <button class="buy-button" disabled>Bloqueado</button>
                 `;
                 storeContainer.appendChild(item);
-                return; // Saltar al siguiente
+                return;
             }
 
-            // Lógica de renderizado para items desbloqueados
+            if (upgrade.type === 'consumable') {
+                const costToDisplay = getUpgradeCost(upgrade, 1);
+                const item = document.createElement('div');
+                item.className = 'upgrade-item';
+                item.dataset.type = upgrade.type;
+                item.innerHTML = `
+                    <span class="upgrade-icon">${itemEmojis[upgrade.id] || ''}</span>
+                    <div class="upgrade-info">
+                        <strong>${upgrade.name}</strong>
+                        <div class="details">
+                            <span class="upgrade-cost">Coste: ${costToDisplay.toLocaleString('es')}</span> | 
+                            <span class="upgrade-stat">¡Prueba tu suerte!</span>
+                        </div>
+                    </div>
+                    <button class="buy-button" id="buy-${upgrade.id}" data-cost="${costToDisplay}">Comprar 1</button>
+                `;
+                item.querySelector('.buy-button').addEventListener('click', () => buyUpgrade(originalIndex));
+                storeContainer.appendChild(item);
+                return;
+            }
+
             let amountToDisplay = 0;
             let costToDisplay = 0;
             let buyText = 'Comprar';
-
             if (buyAmount === 'max') {
                 amountToDisplay = calculateMaxBuy(upgrade);
                 if (amountToDisplay > 0) {
                     costToDisplay = getUpgradeCost(upgrade, amountToDisplay);
                     buyText = `Comprar ${amountToDisplay}`;
                 } else {
-                    amountToDisplay = 1;
-                    costToDisplay = getUpgradeCost(upgrade, 1);
-                    buyText = 'Comprar';
+                    amountToDisplay = 1; costToDisplay = getUpgradeCost(upgrade, 1); buyText = 'Comprar';
                 }
             } else {
-                amountToDisplay = buyAmount;
-                costToDisplay = getUpgradeCost(upgrade, amountToDisplay);
-                buyText = 'Comprar';
+                amountToDisplay = buyAmount; costToDisplay = getUpgradeCost(upgrade, amountToDisplay); buyText = 'Comprar';
             }
             
             const isDisabled = (upgrade.type === 'multiplier' && upgrade.count > 0);
-            const detailText = upgrade.type === 'hps' ? `HPS: +${upgrade.value}` : 
-                              (upgrade.type === 'click' ? `click: +${upgrade.value}` : 
-                              `Multiplica ${upgrade.target} x${upgrade.value}`);
+            const detailText = upgrade.type === 'hps' ? `HPS: +${upgrade.value}` : (upgrade.type === 'click' ? `Clic: +${upgrade.value}` : `Multiplica ${upgrade.target} x${upgrade.value}`);
             const emojiIcon = itemEmojis[upgrade.id] || '';
 
             const item = document.createElement('div');
@@ -568,25 +481,16 @@ const achievements = {
                     ${isDisabled ? 'Comprado' : buyText}
                 </button>
             `;
-
-            item.querySelector('.buy-button').addEventListener('click', () => {
-                buyUpgrade(originalIndex);
-            });
+            item.querySelector('.buy-button').addEventListener('click', () => buyUpgrade(originalIndex));
             storeContainer.appendChild(item);
         });
         
         updateStoreAvailability();
     }
 
-// --- REEMPLAZA esta función ---
     function updateStoreAvailability() {
         document.querySelectorAll('.buy-button').forEach(button => {
-            // Si el botón ya dice 'Comprado', no lo toques.
-            if (button.textContent.trim() === 'Comprado') {
-                return; 
-            }
-            
-            // Para todos los demás botones, actualiza su estado basado en el coste.
+            if (button.textContent.trim() === 'Comprado') return;
             const cost = parseInt(button.dataset.cost, 10);
             button.disabled = leaves < cost;
         });
@@ -595,15 +499,13 @@ const achievements = {
     function updateStoreMaxMode() {
         upgrades.forEach(upgrade => {
             const buttonElement = document.getElementById(`buy-${upgrade.id}`);
-            if (!buttonElement || (upgrade.type === 'multiplier' && upgrade.count > 0) || upgrade.unlocked === false) return;
+            if (!buttonElement || (upgrade.type === 'multiplier' && upgrade.count > 0) || upgrade.unlocked === false || upgrade.type === 'consumable') return;
             
             const itemElement = buttonElement.closest('.upgrade-item');
             const costElement = itemElement.querySelector('.upgrade-cost');
-
             let amountToDisplay = calculateMaxBuy(upgrade);
             let costToDisplay = 0;
             let buyText = 'Comprar';
-
             if (amountToDisplay > 0) {
                 costToDisplay = getUpgradeCost(upgrade, amountToDisplay);
                 buyText = `Comprar ${amountToDisplay}`;
@@ -611,7 +513,6 @@ const achievements = {
                 costToDisplay = getUpgradeCost(upgrade, 1);
                 buyText = 'Comprar';
             }
-
             costElement.textContent = `Coste: ${costToDisplay.toLocaleString('es')}`;
             buttonElement.textContent = buyText;
             buttonElement.dataset.cost = costToDisplay;
@@ -641,14 +542,11 @@ const achievements = {
         number.addEventListener('animationend', () => number.remove());
     }
 
-    // --- REEMPLAZA esta función ---
     function showNotification(title, message, icon = '🔔', duration = 5000) {
         const container = document.getElementById('notification-container');
-        if (!container) return; // Salir si el contenedor no existe
-
+        if (!container) return;
         const notification = document.createElement('div');
         notification.className = 'cozy-notification';
-
         notification.innerHTML = `
             <div class="cozy-notification-icon">${icon}</div>
             <div class="cozy-notification-body">
@@ -656,40 +554,32 @@ const achievements = {
                 <p>${message}</p>
             </div>
         `;
-
-        // Añadir animación de salida y eliminación
-        const slideOutTime = duration - 500; // 500ms para la anim de salida
+        const slideOutTime = duration - 500;
         notification.style.animation = `slideIn 0.5s ease-out forwards, slideOut 0.5s ease-in ${slideOutTime}ms forwards`;
-
-        // Eliminar del DOM después de que termine la animación
         setTimeout(() => {
             notification.remove();
         }, duration);
-
-        // Hacer click para cerrar
         notification.addEventListener('click', () => {
             notification.remove();
         });
-
         container.appendChild(notification);
     }
 
     // --- 5. FUNCIONES DE GUARDADO Y CARGA ---
 
-   // --- REEMPLAZA esta función ---
     function saveGame() {
         const gameState = {
             leaves: leaves,
-            totalLeavesCollected: totalLeavesCollected, // Guardar
-            totalClicks: totalClicks, // Guardar
-            totalGoldenLeavesClicked: totalGoldenLeavesClicked, // Guardar
+            totalLeavesCollected: totalLeavesCollected,
+            totalClicks: totalClicks,
+            totalGoldenLeavesClicked: totalGoldenLeavesClicked,
+            totalLeavesPrestige: totalLeavesPrestige,
             upgrades: upgrades.map(u => ({ id: u.id, count: u.count, unlocked: u.unlocked })),
             isMusicEnabled: isMusicEnabled,
             isSfxEnabled: isSfxEnabled,
             lastSaveTime: Date.now(),
             globalMultiplier: globalMultiplier,
             boostEndTime: boostEndTime,
-            // Guardar estado de logros y variables de sistema
             achievements: Object.keys(achievements).reduce((acc, key) => {
                 acc[key] = { unlocked: achievements[key].unlocked };
                 return acc;
@@ -699,12 +589,13 @@ const achievements = {
             goldenLeafRewardMultiplier: goldenLeafRewardMultiplier,
             goldenLeafDuration: goldenLeafDuration,
             baseClickValue: baseClickValue,
-            clickFrenzyMultiplier: clickFrenzyMultiplier // Guardar
+            clickFrenzyMultiplier: clickFrenzyMultiplier,
+            bellotas: bellotas,
+            prestigeUpgrades: prestigeUpgrades.map(p => ({ id: p.id, count: p.count }))
         };
         localStorage.setItem('cozyClickerSave', JSON.stringify(gameState));
     }
 
-    // --- REEMPLAZA esta función ---
     function loadGame() {
         const savedData = localStorage.getItem('cozyClickerSave');
         if (savedData) {
@@ -714,19 +605,27 @@ const achievements = {
             totalLeavesCollected = loadedState.totalLeavesCollected || leaves;
             totalClicks = loadedState.totalClicks || 0;
             totalGoldenLeavesClicked = loadedState.totalGoldenLeavesClicked || 0;
+            totalLeavesPrestige = loadedState.totalLeavesPrestige || 0;
             
             isMusicEnabled = loadedState.isMusicEnabled !== false;
             isSfxEnabled = loadedState.isSfxEnabled !== false;
             globalMultiplier = loadedState.globalMultiplier || 1;
             boostEndTime = loadedState.boostEndTime || 0;
             
-            // Cargar variables de sistema
             achievementMultipliers = loadedState.achievementMultipliers || achievementMultipliers;
-            goldenLeafSpawnTime = loadedState.goldenLeafSpawnTime || goldenLeafSpawnTime;
-            goldenLeafRewardMultiplier = loadedState.goldenLeafRewardMultiplier || goldenLeafRewardMultiplier;
-            goldenLeafDuration = loadedState.goldenLeafDuration || goldenLeafDuration;
-            baseClickValue = loadedState.baseClickValue || 1; // Cargar
-            clickFrenzyMultiplier = loadedState.clickFrenzyMultiplier || 7; // Cargar
+            goldenLeafSpawnTime = loadedState.goldenLeafSpawnTime || 40;
+            goldenLeafRewardMultiplier = loadedState.goldenLeafRewardMultiplier || 1;
+            goldenLeafDuration = loadedState.goldenLeafDuration || 10;
+            baseClickValue = loadedState.baseClickValue || 1;
+            clickFrenzyMultiplier = loadedState.clickFrenzyMultiplier || 7;
+
+            bellotas = loadedState.bellotas || 0;
+            if (loadedState.prestigeUpgrades) {
+                loadedState.prestigeUpgrades.forEach(savedPU => {
+                    const puInGame = prestigeUpgrades.find(p => p.id === savedPU.id);
+                    if (puInGame) puInGame.count = savedPU.count || 0;
+                });
+            }
 
             if (loadedState.achievements) {
                 for (const key in achievements) {
@@ -738,7 +637,6 @@ const achievements = {
 
             if (loadedState.upgrades) {
                 loadedState.upgrades.forEach(savedUpgrade => {
-                    // Buscar en el array 'upgrades' del juego
                     const upgradeInGame = upgrades.find(u => u.id === savedUpgrade.id);
                     if (upgradeInGame) {
                         upgradeInGame.count = savedUpgrade.count || 0;
@@ -756,44 +654,51 @@ const achievements = {
                 offlineSeconds = Math.min(offlineSeconds, maxOfflineSeconds);
                 
                 recalculateHPS();
-
+                
                 let offlineLeaves = Math.floor(offlineSeconds * leavesPerSecond);
                 if (offlineLeaves > 0) {
                     leaves += offlineLeaves;
                     totalLeavesCollected += offlineLeaves;
+                    totalLeavesPrestige += offlineLeaves;
                     showNotification(`¡Bienvenido de nuevo!`, `Ganaste ${offlineLeaves.toLocaleString('es')} hojas.`, '🍂');
                 }
             }
         }
         
-        // Recalcular todo y renderizar
         recalculateHPS();
         recalculateHPC();
         updateAudioButtonsUI();
         populateSceneryFromLoad();
         renderAchievements();
+        renderPrestigePanel();
         
-        // Comprobar desbloqueos y logros retroactivamente
         checkUnlockConditions();
         checkAchievements();
     }
+
     // --- 6. FUNCIONES DE AUDIO, FONDO Y NUEVAS CARACTERÍSTICAS ---
     
-    function playAudio(audioElement) {
+    function playAudio(audioElement, volume = 1) {
         if (!isSfxEnabled) return;
         audioElement.currentTime = 0;
+        audioElement.volume = volume;
         audioElement.play();
     }
+
+// --- (en script.js) ---
 
     function addSceneryItem(upgradeId, itemIndex, fromLoad = false) {
         const slots = scenerySlotMap[upgradeId];
         if (!slots || itemIndex >= slots.length) return;
         const slotId = slots[itemIndex];
         const slotElement = document.getElementById(slotId);
+        
         if (slotElement && !slotElement.classList.contains('occupied')) {
             slotElement.textContent = itemEmojis[upgradeId];
             slotElement.style.setProperty('--i', itemIndex);
-            slotElement.classList.add('occupied');
+            
+
+
             if (fromLoad) {
                 slotElement.style.opacity = '1';
                 slotElement.style.transform = 'scale(1)';
@@ -872,21 +777,20 @@ const achievements = {
 
     // Lógica de Pestañas
     function setupTabs() {
-        tabStore.addEventListener('click', () => {
-            tabStore.classList.add('active');
-            tabAchievements.classList.remove('active');
-            storePanel.classList.add('active');
-            storePanel.classList.remove('hidden');
-            achievementsPanel.classList.add('hidden');
-            achievementsPanel.classList.remove('active');
-        });
-        tabAchievements.addEventListener('click', () => {
-            tabStore.classList.remove('active');
-            tabAchievements.classList.add('active');
-            storePanel.classList.add('hidden');
-            storePanel.classList.remove('active');
-            achievementsPanel.classList.add('active');
-            achievementsPanel.classList.remove('hidden');
+        const tabs = [tabStore, tabAchievements, tabPrestige];
+        const panels = [storePanel, achievementsPanel, prestigePanel];
+
+        tabs.forEach((tab, index) => {
+            if (!tab) return;
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t?.classList.remove('active'));
+                panels.forEach(p => p?.classList.add('hidden'));
+                
+                tab.classList.add('active');
+                if (panels[index]) {
+                    panels[index].classList.remove('hidden');
+                }
+            });
         });
     }
 
@@ -923,8 +827,7 @@ const achievements = {
                     ach.reward.effect();
                     needsRecalc = true;
                 }
-                showNotification(`¡Logro Desbloqueado: ${ach.name}!`, 
-                    ach.icon);
+                showNotification(`¡Logro Desbloqueado!`, `${ach.name}`, ach.icon);
                 needsRender = true;
             }
         }
@@ -952,48 +855,33 @@ const achievements = {
         
         setTimeout(() => {
             leaf.remove();
-        }, goldenLeafDuration * 1000); // Usar variable
+        }, goldenLeafDuration * 1000);
     }
 
-// --- REEMPLAZA esta función ---
     function clickGoldenLeaf(event) {
         event.target.remove();
         playAudio(buySound);
-        totalGoldenLeavesClicked++; // Contar
+        totalGoldenLeavesClicked++;
 
         if (Math.random() < 0.7) {
-            // Recompensa 1: Hojas instantáneas
-            // --- CORREGIDO: Lógica de recompensa mejorada ---
             const hpsReward = Math.floor(leavesPerSecond * 300 * goldenLeafRewardMultiplier);
-            const clickReward = Math.floor(leavesPerClick * 100 * goldenLeafRewardMultiplier); // Valor de 100 clics
-            const minReward = 25; // Un mínimo de 25 hojas
-
-            // La recompensa es el valor MÁS ALTO de los tres
+            const clickReward = Math.floor(leavesPerClick * 100 * goldenLeafRewardMultiplier);
+            const minReward = 25;
             const reward = Math.max(hpsReward, clickReward, minReward);
             
             leaves += reward;
             totalLeavesCollected += reward;
-            showNotification(
-                '¡Hoja Dorada!', 
-                `+${reward.toLocaleString('es')} hojas`, 
-                '✨'
-            );
+            totalLeavesPrestige += reward;
+            showNotification('¡Hoja Dorada!', `+${reward.toLocaleString('es')} hojas`, '✨');
             showFloatingNumber(reward, event.target);
         } else {
-            // Recompensa 2: Frenesí de Clics
             boostEndTime = Date.now() + 15000;
-            showNotification(
-                '¡Frenesí de Clics!', 
-                `¡Tus clics valen x${clickFrenzyMultiplier} por 15s!`, 
-                '⚡'
-            );
+            showNotification('¡Frenesí de Clics!', `¡Tus clics valen x${clickFrenzyMultiplier} por 15s!`, '⚡');
         }
         updateUI();
     }
     
     function goldenLeafLoop() {
-        // --- CORREGIDO: Temporizador más rápido ---
-        // Genera un tiempo entre el 50% y el 100% del tiempo base
         const randomFactor = (Math.random() * 0.5) + 0.5;
         const time = (randomFactor * goldenLeafSpawnTime) * 1000;
         
@@ -1012,6 +900,270 @@ const achievements = {
             boostTimerDisplay.classList.add('hidden');
         }
     }
+    
+// --- REEMPLAZA esta función ---
+    function openMysteryChest() {
+        const roll = Math.random();
+        
+        // --- RE-BALANCEADO: 50% de probabilidad de no conseguir nada ---
+        if (roll < 0.50) { // 50% - Nada
+            showNotification("¡Vaya!", "La cesta estaba vacía...", '💨');
+        
+        } else if (roll < 0.75) { // 25% - Hojas (1 min de HPS)
+            const reward = Math.floor(leavesPerSecond * 60 * goldenLeafRewardMultiplier);
+            leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
+            showNotification("¡Algo es algo!", `¡La cesta contenía ${reward.toLocaleString('es')} hojas!`, '💰');
+        
+        } else if (roll < 0.90) { // 15% - Hojas (20 mins de HPS)
+            const reward = Math.floor(leavesPerSecond * 1200 * goldenLeafRewardMultiplier);
+            leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
+            showNotification("¡Premio!", `¡La cesta contenía ${reward.toLocaleString('es')} hojas!`, '💰');
+        
+        // --- *** CORRECCIÓN DEL BUG DE LÓGICA *** ---
+        // El texto de la notificación ahora coincide con el efecto (multiplicador estándar).
+        } else if (roll < 0.95) { // 5% - Frenesí (15s)
+            boostEndTime = Date.now() + 15000; // 15 segundos
+            showNotification("¡Frenesí!", `¡Clics x${clickFrenzyMultiplier} por 15 segundos!`, '⚡');
+        
+        } else { // 5% - 1 Bellota (solo si ya has hecho prestigio)
+            if (bellotas > 0 || totalLeavesPrestige >= PRESTIGE_REQ) {
+                bellotas++;
+                showNotification("¡Increíble!", `¡Has encontrado 1 Bellota Dorada! 🌰`, '🌰');
+            } else {
+                showNotification("¡Vaya!", "La cesta estaba vacía...", '💨'); // Falla si no puedes ganar bellotas
+            }
+        }
+        updateUI();
+    }
+// --- REEMPLAZA esta función ---
+    function weatherEventLoop() {
+        // --- MODIFICADO: Temporizador mucho más rápido ---
+        // (Original: 3-6 minutos)
+        // Ahora: 45 a 90 segundos
+        const time = (Math.random() * 45 + 45) * 1000; 
+        
+        setTimeout(() => {
+            startWeatherEvent();
+        }, time);
+    }
+
+    function startWeatherEvent() {
+        if (currentWeatherEvent) return;
+
+        const event = weatherEvents[Math.floor(Math.random() * weatherEvents.length)];
+        currentWeatherEvent = event;
+        eventEndTime = Date.now() + (event.duration * 1000);
+        
+        weatherEventBar.textContent = `${event.name}: ${event.text}`;
+        weatherEventBar.className = event.id;
+
+        recalculateHPS();
+        recalculateHPC();
+        
+        setTimeout(endWeatherEvent, event.duration * 1000);
+    }
+    
+    function endWeatherEvent() {
+        currentWeatherEvent = null;
+        weatherEventBar.classList.add('hidden');
+
+        recalculateHPS();
+        recalculateHPC();
+        
+        weatherEventLoop();
+    }
+    
+    // Lógica de Prestigio
+    function calculateBellotasToGain() {
+        // Fórmula: (Raíz cúbica de hojas / 10,000)
+        // Ajuste: La fórmula original (Math.cbrt(totalLeavesPrestige / 1e12)) parecía demasiado dura.
+        // 1e12 es 1 Trillón. El requisito es 1 Billón (1e9).
+        // Usemos una fórmula basada en 1e9 (1 Billón).
+        // (totalLeavesPrestige / 1e9)^(1/3) * 10 (ej: 1B -> 10, 8B -> 20, 1T (1000B) -> 100)
+        return Math.floor(Math.pow(totalLeavesPrestige / 1e9, 1/3) * 10);
+    }
+    
+// Aprox. línea 1025 de script.js
+function updatePrestigePanel() {
+    if (!prestigePanel.classList.contains('hidden')) {
+        const bellotasToGain = calculateBellotasToGain();
+        prestigeTotalLeavesDisplay.textContent = Math.floor(totalLeavesPrestige).toLocaleString('es');
+        prestigeGainDisplay.textContent = `${bellotasToGain.toLocaleString('es')} 🌰`;
+        
+        if (totalLeavesPrestige >= PRESTIGE_REQ) {
+            prestigeResetButton.disabled = false;
+        } else {
+            prestigeResetButton.disabled = true;
+        }
+
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Esta lógica faltaba. Actualiza los botones de compra en cada tick.
+        document.querySelectorAll('.prestige-buy').forEach(button => {
+            const index = parseInt(button.dataset.index, 10);
+            if (isNaN(index)) return; // Seguridad
+
+            const pu = prestigeUpgrades[index];
+            if (!pu) return; // Seguridad
+
+            const cost = pu.baseCost + pu.count;
+            const isTooExpensive = bellotas < cost;
+            const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
+            
+            button.disabled = (isTooExpensive || isMaxLevel);
+        });
+        // --- FIN DE LA CORRECCIÓN ---
+    }
+}
+    
+// REEMPLAZA ESTA FUNCIÓN ENTERA
+
+    function renderPrestigePanel() {
+        prestigeUpgradeContainer.innerHTML = '<h3>Mejoras Permanentes</h3>';
+        
+        prestigeUpgrades.forEach((pu, index) => {
+            const cost = pu.baseCost + pu.count;
+
+            // Lógica booleana
+            const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
+            const isTooExpensive = bellotas < cost;
+            const maxLevelText = isMaxLevel ? '(Max)' : '';
+        
+            // --- Construcción de DOM Puro ---
+            
+            // 1. Contenedor principal
+            const item = document.createElement('div');
+            item.className = 'prestige-upgrade';
+
+            // 2. Info
+            const info = document.createElement('div');
+            info.className = 'upgrade-info';
+            info.innerHTML = `
+                <strong>${pu.name} ${maxLevelText}</strong>
+                <div class="details">${pu.desc} (Nivel ${pu.count})</div>
+                <div class="details bellota">Coste: ${cost} 🌰</div>
+            `;
+
+            // 3. Botón
+            const button = document.createElement('button');
+            button.className = 'buy-button prestige-buy';
+            button.textContent = 'Comprar';
+            button.dataset.index = index;
+            
+            // 4. ESTA ES LA LÍNEA CRÍTICA:
+            // Establece la propiedad .disabled directamente.
+            button.disabled = (isTooExpensive || isMaxLevel);
+            console.log(button);
+            console.log(button.disabled);
+            // 5. Ensamblar
+            item.appendChild(info);
+            item.appendChild(button);
+            prestigeUpgradeContainer.appendChild(item);
+        });
+
+        // El event listener
+        document.querySelectorAll('.prestige-buy').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index, 10);
+                buyPrestigeUpgrade(index);
+            });
+        });
+    }
+
+    function buyPrestigeUpgrade(index) {
+        const pu = prestigeUpgrades[index];
+        const cost = pu.baseCost + pu.count;
+        
+        if (bellotas >= cost && (pu.maxLevel === -1 || pu.count < pu.maxLevel)) {
+            bellotas -= cost;
+            pu.count++;
+            
+            if (pu.id === 'perm_golden_1') goldenLeafSpawnTime *= 0.98;
+            
+            recalculateHPS();
+            recalculateHPC();
+            updateUI();
+            renderPrestigePanel();
+            saveGame();
+        }
+    }
+    
+    // --- *** CORRECCIÓN DEL BUG CRÍTICO DE PRESTIGIO *** ---
+    // La función ahora reinicia el estado antes de guardar y recargar.
+    function prestigeReset() {
+        const bellotasGanadas = calculateBellotasToGain();
+        if (totalLeavesPrestige < PRESTIGE_REQ) return;
+        
+        if (!confirm(`¿Estás seguro? Reiniciarás tu progreso (hojas y mejoras) y ganarás ${bellotasGanadas} 🌰 Bellotas Doradas.`)) {
+            return;
+        }
+
+        playAudio(buySound, 0.5);
+        
+        // --- 1. CAPTURAR DATOS PERSISTENTES ---
+        // (Datos que sobreviven al reinicio)
+        const bellotasActuales = bellotas + bellotasGanadas;
+        //const achievementsActuales = achievements; // El objeto de logros persiste
+        const totalClicksActuales = totalClicks; // Los clics totales persisten
+        const totalGoldenLeavesActuales = totalGoldenLeavesClicked; // Las hojas doradas persisten
+        const totalLeavesCollectedActuales = totalLeavesCollected; // El total histórico persiste
+        
+        // (Variables/efectos de logros que persisten)
+        const achMultipliers = achievementMultipliers;
+        const gLeafSpawn = goldenLeafSpawnTime;
+        const gLeafReward = goldenLeafRewardMultiplier;
+        const baseClick = baseClickValue;
+        const clickFrenzyMult = clickFrenzyMultiplier;
+        const gMultiplier = globalMultiplier;
+
+        // --- 2. REINICIAR ESTADO DEL JUEGO (GLOBALS) ---
+        leaves = 0;
+        totalLeavesPrestige = 0;
+        boostEndTime = 0;
+        currentWeatherEvent = null;
+        
+        // Reiniciar contadores de mejoras
+        upgrades.forEach(u => {
+            u.count = 0;
+            // Bloquear mejoras de multiplicador
+            if (u.requirement) {
+                u.unlocked = false;
+            }
+        });
+
+        // --- 3. REASIGNAR DATOS PERSISTENTES ---
+        bellotas = bellotasActuales;
+        //achievements = achievementsActuales;
+        totalClicks = totalClicksActuales;
+        totalGoldenLeavesClicked = totalGoldenLeavesActuales;
+        totalLeavesCollected = totalLeavesCollectedActuales;
+        
+        // Reasignar efectos de logros
+        achievementMultipliers = achMultipliers;
+        goldenLeafSpawnTime = gLeafSpawn;
+        goldenLeafRewardMultiplier = gLeafReward;
+        baseClickValue = baseClick;
+        clickFrenzyMultiplier = clickFrenzyMult;
+        globalMultiplier = gMultiplier;
+
+        // --- 4. APLICAR MEJORAS DE PRESTIGIO ---
+        // (Ej. 'Rastrillo de Confianza')
+        const startRakes = prestigeUpgrades.find(p => p.id === 'perm_start_1')?.count || 0;
+        if (startRakes > 0) {
+            const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
+            if (rakeUpgrade) rakeUpgrade.count = 5;
+        }
+        
+        recalculateHPS();
+        recalculateHPC();
+        updateUI();
+        renderStore();
+        renderPrestigePanel(); // Actualizar botones de prestigio con nuevas bellotas
+        populateSceneryFromLoad(); // Limpiar el escenario visualmente
+
+        // --- 5. GUARDAR EL ESTADO LIMPIO Y RECARGAR ---
+        saveGame();
+        location.reload();
+    }
 
     // --- 7. INICIALIZACIÓN ---
     function init() {
@@ -1019,6 +1171,7 @@ const achievements = {
         setupAudioControls();
         setupBuyAmountToggle();
         setupTabs();
+        prestigeResetButton.addEventListener('click', prestigeReset);
         
         loadGame();
         
@@ -1033,6 +1186,7 @@ const achievements = {
         window.addEventListener('beforeunload', saveGame);
         
         goldenLeafLoop();
+        weatherEventLoop();
     }
 
     init();

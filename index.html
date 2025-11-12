@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy Clicker de Otoño</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+
+    <div class="game-container">
+        
+        <div class="clicker-section">
+            
+            <div id="falling-leaves-container"></div>
+            <div class="clicker-content">
+                <h1>Refugio de Otoño</h1>
+                <div class="stats-container">
+                    <div id="leaf-count" class="stat-display">0</div>
+                    <div class="stat-label">hojas recogidas</div>
+                    <div id="hps-count" class="stat-display">0.0</div>
+                    <div class="stat-label">hojas por segundo</div>
+                    <div id="hpc-count" class="stat-display hpc">1</div>
+                    <div class="stat-label">hojas por click</div>
+                </div>
+                </div>
+
+            <div class="clicker-area">
+                <button id="clicker-button" class="clicker-button">🍂</button>
+                <div id="boost-timer" class="hidden"></div>
+            </div>
+
+            <div id="scenery-display">
+                <div id="shelf-top" class="scenery-shelf">
+                    <div class="scenery-slot" id="slot-arbol-1"></div>
+                    <div class="scenery-slot" id="slot-arbol-2"></div>
+                    <div class="scenery-slot" id="slot-arbol-3"></div>
+                </div>
+                <div id="shelf-middle" class="scenery-shelf">
+                    <div class="scenery-slot" id="slot-ardilla-1"></div>
+                    <div class="scenery-slot" id="slot-ardilla-2"></div>
+                    <div class="scenery-slot" id="slot-ardilla-3"></div>
+                    <div class="scenery-slot" id="slot-ardilla-4"></div>
+                </div>
+                <div id="window-sill" class="scenery-shelf">
+                    <div class="scenery-slot" id="slot-cesto-1"></div>
+                    <div class="scenery-slot" id="slot-cesto-2"></div>
+                    <div class="scenery-slot" id="slot-cesto-3"></div>
+                    <div class="scenery-slot" id="slot-cesto-4"></div>
+                    <div class="scenery-slot" id="slot-cesto-5"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="store-section">
+            
+            <div class="store-tabs">
+                <button id="tab-store" class="tab-button active">Mejoras</button>
+                <button id="tab-achievements" class="tab-button">Logros</button>
+            </div>
+            
+            <div id="store-panel" class="tab-panel active">
+                <div class="store-controls">
+                    <button id="buy-amount-toggle" data-amount="1">Comprar: 1</button>
+                </div>
+                <div id="store-container"></div>
+            </div>
+
+            <div id="achievements-panel" class="tab-panel hidden">
+                <div id="achievements-container"></div>
+            </div>
+            
+            <div class="audio-controls">
+                <button id="music-toggle" class="audio-btn">Música: 🎵</button>
+                <button id="sfx-toggle" class="audio-btn">Sonidos: 🔊</button>
+            </div>
+        </div>
+    </div>
+    <div id="notification-container"></div>
+    <audio id="music-lofi" src="audio/lofi-music.mp3" loop preload="auto"></audio>
+    <audio id="sound-click" src="audio/click-sound.wav" preload="auto"></audio>
+    <audio id="sound-buy" src="audio/buy-sound.wav" preload="auto"></audio>
+
+</body>
+</html>

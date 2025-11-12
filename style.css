@@ -239,7 +239,7 @@ h3 { font-size: 1.4rem; color: var(--accent-color); margin-bottom: 10px;}
     box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     padding: 10px 20px;
     transition: opacity 0.4s ease, transform 0.4s ease;
-    position: absolute; bottom: -30px; left: 50%;
+    position: absolute; bottom: -40px; left: 50%;
     opacity: 1; transform: translate(-50%, 0); z-index: 10;
 }
 #boost-timer.hidden {

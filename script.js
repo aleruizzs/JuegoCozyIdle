@@ -1049,6 +1049,12 @@ function updatePrestigePanel() {
             button.textContent = 'Comprar';
             button.dataset.index = index;
             
+            if (isMaxLevel) {
+                button.textContent = 'Comprado';
+            } else {
+                button.textContent = 'Comprar';
+            }
+
             // 4. ESTA ES LA LÍNEA CRÍTICA:
             // Establece la propiedad .disabled directamente.
             button.disabled = (isTooExpensive || isMaxLevel);
@@ -1069,23 +1075,39 @@ function updatePrestigePanel() {
         });
     }
 
-    function buyPrestigeUpgrade(index) {
-        const pu = prestigeUpgrades[index];
-        const cost = pu.baseCost + pu.count;
+// REEMPLAZA ESTA FUNCIÓN
+function buyPrestigeUpgrade(index) {
+    const pu = prestigeUpgrades[index];
+    const cost = pu.baseCost + pu.count;
+    
+    if (bellotas >= cost && (pu.maxLevel === -1 || pu.count < pu.maxLevel)) {
+        bellotas -= cost;
+        pu.count++;
         
-        if (bellotas >= cost && (pu.maxLevel === -1 || pu.count < pu.maxLevel)) {
-            bellotas -= cost;
-            pu.count++;
-            
-            if (pu.id === 'perm_golden_1') goldenLeafSpawnTime *= 0.98;
-            
-            recalculateHPS();
-            recalculateHPC();
-            updateUI();
-            renderPrestigePanel();
-            saveGame();
+        if (pu.id === 'perm_golden_1') goldenLeafSpawnTime *= 0.98;
+
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Aplicar efectos de compra inmediata
+        if (pu.id === 'perm_start_1') {
+            const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
+            if (rakeUpgrade) {
+                // Asegurarse de no *quitar* rastrillos si ya tenías más
+                if (rakeUpgrade.count < 5) {
+                    rakeUpgrade.count = 5;
+                }
+                // Necesitamos refrescar la tienda principal para ver los 5 rastrillos
+                renderStore(); 
+            }
         }
+        // --- FIN DE LA CORRECCIÓN ---
+        
+        recalculateHPS();
+        recalculateHPC();
+        updateUI();
+        renderPrestigePanel(); // Refresca el panel de prestigio (para el botón 'Comprado')
+        saveGame();
     }
+}
     
     // --- *** CORRECCIÓN DEL BUG CRÍTICO DE PRESTIGIO *** ---
     // La función ahora reinicia el estado antes de guardar y recargar.

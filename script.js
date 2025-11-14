@@ -37,8 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const weatherEventBar = document.getElementById('weather-event-bar');
     const rainContainer = document.getElementById('rain-container');
     const sunOverlay = document.getElementById('sun-overlay');
-    // *** NUEVO: Referencia al contenedor de viento ***
     const windContainer = document.getElementById('wind-container');
+
+    // *** INICIO: NUEVAS REFERENCIAS DE AUDIO ***
+    const prestigeSound = document.getElementById('sound-prestige'); // Ya estaba en tu HTML
+    const windSound = document.getElementById('sound-wind-loop');
+    const rainSound = document.getElementById('sound-rain-loop');
+    const notificationSound = document.getElementById('sound-notification');
+    const levelUpSound = document.getElementById('sound-level-up');
+    const goldenLeafSound = document.getElementById('sound-golden-leaf');
+    // *** FIN: NUEVAS REFERENCIAS DE AUDIO ***
 
 
     // --- 2. ESTADO DEL JUEGO ---
@@ -88,6 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let goldenLeafRewardMultiplier = 1;
     let goldenLeafDuration = 10;
 
+    let notificationQueue = [];
+    let isNotificationShowing = false;
+    
     // Definición de Logros
     const achievements = {
         'leaf_10k': { name: 'Bolsillo Lleno', desc: 'Recoge un total de 10,000 hojas.', icon: '💰', unlocked: false, condition: () => totalLeavesCollected >= 10000, reward: { text: '+1% HPS/HPC global', effect: () => globalMultiplier *= 1.01 }},
@@ -547,7 +558,29 @@ document.addEventListener('DOMContentLoaded', () => {
         number.addEventListener('animationend', () => number.remove());
     }
 
-    function showNotification(title, message, icon = '🔔', duration = 5000) {
+function showNotification(title, message, icon = '🔔', duration = 2800) {
+        notificationQueue.push({ title, message, icon, duration });
+        if (!isNotificationShowing) {
+            processNotificationQueue();
+        }
+    }
+
+    // 2. El NUEVO procesador de la cola
+    function processNotificationQueue() {
+        if (isNotificationShowing || notificationQueue.length === 0) {
+            return; // No hacer nada si ya se muestra una o la cola está vacía
+        }
+
+        isNotificationShowing = true;
+        const notif = notificationQueue.shift(); // Saca la siguiente notificación de la cola
+
+        // Llama a la función de visualización real
+        _displayNotification(notif.title, notif.message, notif.icon, notif.duration);
+    }
+
+    // 3. Tu función original, RENOMBRADA a _displayNotification
+    //    y modificada para que avise a la cola cuando termina.
+    function _displayNotification(title, message, icon = '🔔', duration = 2800) {
         const container = document.getElementById('notification-container');
         if (!container) return;
         const notification = document.createElement('div');
@@ -561,15 +594,21 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         const slideOutTime = duration - 500;
         notification.style.animation = `slideIn 0.5s ease-out forwards, slideOut 0.5s ease-in ${slideOutTime}ms forwards`;
-        setTimeout(() => {
+        
+        // --- MODIFICACIÓN CLAVE ---
+        // Cuando la notificación termina (o se hace clic)...
+        const onNotificationEnd = () => {
             notification.remove();
-        }, duration);
-        notification.addEventListener('click', () => {
-            notification.remove();
-        });
+            isNotificationShowing = false; // ...avisamos que el hueco está libre...
+            processNotificationQueue();    // ...y comprobamos si hay más en la cola.
+        };
+        
+        setTimeout(onNotificationEnd, duration);
+        notification.addEventListener('click', onNotificationEnd);
+        // --- FIN DE MODIFICACIÓN ---
+
         container.appendChild(notification);
     }
-
     // --- 5. FUNCIONES DE GUARDADO Y CARGA ---
 
     function saveGame() {
@@ -683,8 +722,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 6. FUNCIONES DE AUDIO, FONDO Y NUEVAS CARACTERÍSTICAS ---
     
-    function playAudio(audioElement, volume = 1) {
-        if (!isSfxEnabled) return;
+    // *** MODIFICADO: Volumen por defecto a 0.5 (50%) ***
+    function playAudio(audioElement, volume = 0.5) {
+        if (!isSfxEnabled || !audioElement) return; // Añadida comprobación de seguridad
         audioElement.currentTime = 0;
         audioElement.volume = volume;
         audioElement.play();
@@ -704,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // *** MODIFICADO: Corregido el bug de opacidad ***
     function populateSceneryFromLoad() {
         // Este bucle resetea los slots a su estado original (definido en CSS)
         sceneryDisplay.querySelectorAll('.scenery-slot').forEach(slot => {
@@ -726,10 +767,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // --- BLOQUE ELIMINADO ---
-        // El 'setTimeout' que había aquí era redundante
-        // (ya que addSceneryItem añade la clase 'occupied')
-        // y se ha eliminado.
+        // El 'setTimeout' que había aquí era redundante y se ha eliminado.
     }
+
+
     function setupAudioControls() {
         musicToggleBtn.addEventListener('click', () => {
             isMusicEnabled = !isMusicEnabled;
@@ -801,23 +842,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-// *** NUEVO: Función para crear hojas de viento ***
     function setupWind() {
         if (!windContainer) return;
         windContainer.innerHTML = '';
-        for (let i = 0; i < 50; i++) { // 50 ráfagas
+        for (let i = 0; i < 50; i++) { 
             const leaf = document.createElement('div');
             leaf.className = 'wind-leaf';
             leaf.textContent = '🍂';
             
-            // --- ¡ESTO ES LO IMPORTANTE! ---
-            // Usamos la variable '--start-y' para definir la POSICIÓN X (horizontal) aleatoria.
-            leaf.style.setProperty('--start-y', `${Math.random() * 100}vw`); // Posición X: 0% a 100% del ancho
-
-            // Duración de la caída
-            leaf.style.animationDuration = `${Math.random() * 3.5 + 1.5}s`; // 2-4 segundos
-            // Delay para que no salgan todas a la vez
-            leaf.style.animationDelay = `${Math.random() * 3}s`; // 0-3 segundos
+            leaf.style.setProperty('--start-y', `${Math.random() * 100}vw`); 
+            leaf.style.animationDuration = `${Math.random() * 3.5 + 1.5}s`; 
+            leaf.style.animationDelay = `${Math.random() * 3}s`; 
             windContainer.appendChild(leaf);
         }
     }
@@ -875,6 +910,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     needsRecalc = true;
                 }
                 showNotification(`¡Logro Desbloqueado!`, `${ach.name}`, ach.icon);
+                
+                // *** MODIFICADO: Sonido de Logro ***
+                playAudio(notificationSound); 
+                
                 needsRender = true;
             }
         }
@@ -907,7 +946,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function clickGoldenLeaf(event) {
         event.target.remove();
-        playAudio(buySound);
+        
+        // *** MODIFICADO: Sonido de Hoja Dorada ***
+        playAudio(goldenLeafSound); 
+        
         totalGoldenLeavesClicked++;
 
         if (Math.random() < 0.7) {
@@ -987,7 +1029,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, time);
     }
 
-function startWeatherEvent() {
+    // *** MODIFICADO: Añadido control de audio de clima ***
+    function startWeatherEvent() {
         if (currentWeatherEvent) return;
 
         const event = weatherEvents[Math.floor(Math.random() * weatherEvents.length)];
@@ -997,14 +1040,23 @@ function startWeatherEvent() {
         weatherEventBar.textContent = `${event.name}: ${event.text}`;
         weatherEventBar.className = event.id;
 
-        // --- Lógica para mostrar efectos ---
+        // --- Lógica para mostrar efectos Y SONIDOS ---
         if (event.id === 'rain') {
             rainContainer.classList.remove('hidden');
+            if (isSfxEnabled && rainSound) {
+                rainSound.volume = 0.07;
+                rainSound.currentTime = 0;
+                rainSound.play();
+            }
         } else if (event.id === 'sun') {
             sunOverlay.classList.remove('hidden');
         } else if (event.id === 'wind') {
-            // Muestra el contenedor de hojas de viento
             windContainer.classList.remove('hidden');
+            if (isSfxEnabled && windSound) {
+                windSound.volume = 0.2;
+                windSound.currentTime = 0;
+                windSound.play();
+            }
         }
 
         recalculateHPS();
@@ -1013,11 +1065,16 @@ function startWeatherEvent() {
         setTimeout(endWeatherEvent, event.duration * 1000);
     }
     
+    // *** MODIFICADO: Añadido control de audio de clima ***
     function endWeatherEvent() {
         // --- Lógica para ocultar TODO ---
         rainContainer.classList.add('hidden');
         sunOverlay.classList.add('hidden');
-        windContainer.classList.add('hidden'); // Oculta el viento
+        windContainer.classList.add('hidden'); 
+        
+        // --- Pausar sonidos de clima ---
+        if (rainSound) rainSound.pause();
+        if (windSound) windSound.pause();
         
         currentWeatherEvent = null; 
         weatherEventBar.classList.add('hidden');
@@ -1143,7 +1200,8 @@ function startWeatherEvent() {
             return;
         }
 
-        playAudio(buySound, 0.5);
+        // *** MODIFICADO: Sonido de Prestigio (Level Up) ***
+        playAudio(levelUpSound);
         
         const bellotasActuales = bellotas + bellotasGanadas;
         const totalClicksActuales = totalClicks; 
@@ -1213,7 +1271,7 @@ function startWeatherEvent() {
 
         setupFallingLeavesAnimation(); 
         setupRain(); 
-        setupWind(); // *** NUEVO: Pre-genera las hojas de viento ***
+        setupWind(); 
 
         // Iniciar bucles principales
         setInterval(gameLoop, 1000);

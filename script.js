@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hpsCountDisplay = document.getElementById('hps-count');
     const hpcCountDisplay = document.getElementById('hpc-count');
     const clickerButton = document.getElementById('clicker-button');
-    const clickerSection = document.querySelector('.clicker-section');
+    const clickerSection = document.querySelector('.clicker-section'); 
     const storeContainer = document.getElementById('store-container');
     const sceneryDisplay = document.getElementById('scenery-display');
     const clickerArea = document.querySelector('.clicker-area');
@@ -35,6 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Clima
     const weatherEventBar = document.getElementById('weather-event-bar');
+    const rainContainer = document.getElementById('rain-container');
+    const sunOverlay = document.getElementById('sun-overlay');
+    // *** NUEVO: Referencia al contenedor de viento ***
+    const windContainer = document.getElementById('wind-container');
+
 
     // --- 2. ESTADO DEL JUEGO ---
     let leaves = 0;
@@ -63,8 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let eventEndTime = 0;
     const weatherEvents = [
         { id: 'rain', name: '🌧️ Lluvia Ligera', duration: 60, target: 'hps', multiplier: 1.5, text: '¡La lluvia aumenta el HPS x1.5!' },
-        { id: 'wind', name: '💨 Racha de Viento', duration: 30, target: 'click', multiplier: 3, text: '¡El viento triplica el valor de tus Clics!' },
-        { id: 'sun', name: '☀️ Día Soleado', duration: 120, target: 'all', multiplier: 2, text: '¡Día perfecto! ¡Toda la producción x2!' }
+        { id: 'wind', name: '💨 Racha de Viento', duration: 20, target: 'click', multiplier: 3, text: '¡El viento triplica el valor de tus Clics!' },
+        { id: 'sun', name: '☀️ Día Soleado', duration: 80, target: 'all', multiplier: 2, text: '¡Día perfecto! ¡Toda la producción x2!' }
     ];
 
     // Contadores Globales
@@ -685,8 +690,6 @@ document.addEventListener('DOMContentLoaded', () => {
         audioElement.play();
     }
 
-// --- (en script.js) ---
-
     function addSceneryItem(upgradeId, itemIndex, fromLoad = false) {
         const slots = scenerySlotMap[upgradeId];
         if (!slots || itemIndex >= slots.length) return;
@@ -697,12 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
             slotElement.textContent = itemEmojis[upgradeId];
             slotElement.style.setProperty('--i', itemIndex);
             
-
-
-            if (fromLoad) {
-                slotElement.style.opacity = '1';
-                slotElement.style.transform = 'scale(1)';
-            }
+            slotElement.classList.add('occupied');
         }
     }
 
@@ -716,10 +714,18 @@ document.addEventListener('DOMContentLoaded', () => {
         upgrades.forEach(upgrade => {
             if (scenerySlotMap[upgrade.id]) {
                 for (let i = 0; i < upgrade.count; i++) {
-                    addSceneryItem(upgrade.id, i, true);
+                    addSceneryItem(upgrade.id, i, true); 
                 }
             }
         });
+        
+        setTimeout(() => {
+            sceneryDisplay.querySelectorAll('.scenery-slot').forEach(slot => {
+                if (slot.textContent) {
+                    slot.classList.add('occupied');
+                }
+            });
+        }, 10);
     }
 
     function setupAudioControls() {
@@ -768,10 +774,49 @@ document.addEventListener('DOMContentLoaded', () => {
             leaf.className = 'falling-leaf';
             leaf.textContent = '🍂';
             leaf.style.left = `${Math.random() * 100}%`;
-            leaf.style.animationDuration = `${Math.random() * 5 + 10}s`;
+            
+            const baseDuration = Math.random() * 5 + 10;
+            leaf.style.setProperty('--base-leaf-fall-duration', `${baseDuration}s`);
+            
+            leaf.style.animationDuration = `var(--base-leaf-fall-duration)`;
+            
             leaf.style.animationDelay = `${Math.random() * 15}s`;
             leaf.style.fontSize = `${Math.random() * 0.5 + 1}rem`;
             container.appendChild(leaf);
+        }
+    }
+    
+    function setupRain() {
+        if (!rainContainer) return;
+        rainContainer.innerHTML = ''; 
+        for (let i = 0; i < 100; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'raindrop';
+            drop.style.left = `${Math.random() * 100}%`;
+            drop.style.animationDuration = `${Math.random() * 0.5 + 0.3}s`; 
+            drop.style.animationDelay = `${Math.random() * 2}s`;
+            rainContainer.appendChild(drop);
+        }
+    }
+
+// *** NUEVO: Función para crear hojas de viento ***
+    function setupWind() {
+        if (!windContainer) return;
+        windContainer.innerHTML = '';
+        for (let i = 0; i < 50; i++) { // 50 ráfagas
+            const leaf = document.createElement('div');
+            leaf.className = 'wind-leaf';
+            leaf.textContent = '🍂';
+            
+            // --- ¡ESTO ES LO IMPORTANTE! ---
+            // Usamos la variable '--start-y' para definir la POSICIÓN X (horizontal) aleatoria.
+            leaf.style.setProperty('--start-y', `${Math.random() * 100}vw`); // Posición X: 0% a 100% del ancho
+
+            // Duración de la caída
+            leaf.style.animationDuration = `${Math.random() * 3.5 + 1.5}s`; // 2-4 segundos
+            // Delay para que no salgan todas a la vez
+            leaf.style.animationDelay = `${Math.random() * 3}s`; // 0-3 segundos
+            windContainer.appendChild(leaf);
         }
     }
 
@@ -901,11 +946,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-// --- REEMPLAZA esta función ---
     function openMysteryChest() {
         const roll = Math.random();
         
-        // --- RE-BALANCEADO: 50% de probabilidad de no conseguir nada ---
         if (roll < 0.50) { // 50% - Nada
             showNotification("¡Vaya!", "La cesta estaba vacía...", '💨');
         
@@ -919,8 +962,6 @@ document.addEventListener('DOMContentLoaded', () => {
             leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
             showNotification("¡Premio!", `¡La cesta contenía ${reward.toLocaleString('es')} hojas!`, '💰');
         
-        // --- *** CORRECCIÓN DEL BUG DE LÓGICA *** ---
-        // El texto de la notificación ahora coincide con el efecto (multiplicador estándar).
         } else if (roll < 0.95) { // 5% - Frenesí (15s)
             boostEndTime = Date.now() + 15000; // 15 segundos
             showNotification("¡Frenesí!", `¡Clics x${clickFrenzyMultiplier} por 15 segundos!`, '⚡');
@@ -935,19 +976,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateUI();
     }
-// --- REEMPLAZA esta función ---
+
     function weatherEventLoop() {
-        // --- MODIFICADO: Temporizador mucho más rápido ---
-        // (Original: 3-6 minutos)
-        // Ahora: 45 a 90 segundos
         const time = (Math.random() * 45 + 45) * 1000; 
-        
+        //const time = 5 * 1000;
         setTimeout(() => {
             startWeatherEvent();
         }, time);
     }
 
-    function startWeatherEvent() {
+function startWeatherEvent() {
         if (currentWeatherEvent) return;
 
         const event = weatherEvents[Math.floor(Math.random() * weatherEvents.length)];
@@ -957,6 +995,16 @@ document.addEventListener('DOMContentLoaded', () => {
         weatherEventBar.textContent = `${event.name}: ${event.text}`;
         weatherEventBar.className = event.id;
 
+        // --- Lógica para mostrar efectos ---
+        if (event.id === 'rain') {
+            rainContainer.classList.remove('hidden');
+        } else if (event.id === 'sun') {
+            sunOverlay.classList.remove('hidden');
+        } else if (event.id === 'wind') {
+            // Muestra el contenedor de hojas de viento
+            windContainer.classList.remove('hidden');
+        }
+
         recalculateHPS();
         recalculateHPC();
         
@@ -964,77 +1012,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function endWeatherEvent() {
-        currentWeatherEvent = null;
+        // --- Lógica para ocultar TODO ---
+        rainContainer.classList.add('hidden');
+        sunOverlay.classList.add('hidden');
+        windContainer.classList.add('hidden'); // Oculta el viento
+        
+        currentWeatherEvent = null; 
         weatherEventBar.classList.add('hidden');
 
         recalculateHPS();
         recalculateHPC();
         
         weatherEventLoop();
-    }
-    
+    }    
     // Lógica de Prestigio
     function calculateBellotasToGain() {
-        // Fórmula: (Raíz cúbica de hojas / 10,000)
-        // Ajuste: La fórmula original (Math.cbrt(totalLeavesPrestige / 1e12)) parecía demasiado dura.
-        // 1e12 es 1 Trillón. El requisito es 1 Billón (1e9).
-        // Usemos una fórmula basada en 1e9 (1 Billón).
-        // (totalLeavesPrestige / 1e9)^(1/3) * 10 (ej: 1B -> 10, 8B -> 20, 1T (1000B) -> 100)
         return Math.floor(Math.pow(totalLeavesPrestige / 1e9, 1/3) * 10);
     }
     
-// Aprox. línea 1025 de script.js
-function updatePrestigePanel() {
-    if (!prestigePanel.classList.contains('hidden')) {
-        const bellotasToGain = calculateBellotasToGain();
-        prestigeTotalLeavesDisplay.textContent = Math.floor(totalLeavesPrestige).toLocaleString('es');
-        prestigeGainDisplay.textContent = `${bellotasToGain.toLocaleString('es')} 🌰`;
-        
-        if (totalLeavesPrestige >= PRESTIGE_REQ) {
-            prestigeResetButton.disabled = false;
-        } else {
-            prestigeResetButton.disabled = true;
-        }
-
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Esta lógica faltaba. Actualiza los botones de compra en cada tick.
-        document.querySelectorAll('.prestige-buy').forEach(button => {
-            const index = parseInt(button.dataset.index, 10);
-            if (isNaN(index)) return; // Seguridad
-
-            const pu = prestigeUpgrades[index];
-            if (!pu) return; // Seguridad
-
-            const cost = pu.baseCost + pu.count;
-            const isTooExpensive = bellotas < cost;
-            const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
+    function updatePrestigePanel() {
+        if (!prestigePanel.classList.contains('hidden')) {
+            const bellotasToGain = calculateBellotasToGain();
+            prestigeTotalLeavesDisplay.textContent = Math.floor(totalLeavesPrestige).toLocaleString('es');
+            prestigeGainDisplay.textContent = `${bellotasToGain.toLocaleString('es')} 🌰`;
             
-            button.disabled = (isTooExpensive || isMaxLevel);
-        });
-        // --- FIN DE LA CORRECCIÓN ---
-    }
-}
-    
-// REEMPLAZA ESTA FUNCIÓN ENTERA
+            if (totalLeavesPrestige >= PRESTIGE_REQ) {
+                prestigeResetButton.disabled = false;
+            } else {
+                prestigeResetButton.disabled = true;
+            }
 
+            document.querySelectorAll('.prestige-buy').forEach(button => {
+                const index = parseInt(button.dataset.index, 10);
+                if (isNaN(index)) return; 
+
+                const pu = prestigeUpgrades[index];
+                if (!pu) return; 
+
+                const cost = pu.baseCost + pu.count;
+                const isTooExpensive = bellotas < cost;
+                const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
+                
+                button.disabled = (isTooExpensive || isMaxLevel);
+            });
+        }
+    }
+        
     function renderPrestigePanel() {
         prestigeUpgradeContainer.innerHTML = '<h3>Mejoras Permanentes</h3>';
         
         prestigeUpgrades.forEach((pu, index) => {
             const cost = pu.baseCost + pu.count;
 
-            // Lógica booleana
             const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
             const isTooExpensive = bellotas < cost;
             const maxLevelText = isMaxLevel ? '(Max)' : '';
         
-            // --- Construcción de DOM Puro ---
-            
-            // 1. Contenedor principal
             const item = document.createElement('div');
             item.className = 'prestige-upgrade';
 
-            // 2. Info
             const info = document.createElement('div');
             info.className = 'upgrade-info';
             info.innerHTML = `
@@ -1043,7 +1079,6 @@ function updatePrestigePanel() {
                 <div class="details bellota">Coste: ${cost} 🌰</div>
             `;
 
-            // 3. Botón
             const button = document.createElement('button');
             button.className = 'buy-button prestige-buy';
             button.textContent = 'Comprar';
@@ -1055,18 +1090,13 @@ function updatePrestigePanel() {
                 button.textContent = 'Comprar';
             }
 
-            // 4. ESTA ES LA LÍNEA CRÍTICA:
-            // Establece la propiedad .disabled directamente.
             button.disabled = (isTooExpensive || isMaxLevel);
-            console.log(button);
-            console.log(button.disabled);
-            // 5. Ensamblar
+            
             item.appendChild(info);
             item.appendChild(button);
             prestigeUpgradeContainer.appendChild(item);
         });
 
-        // El event listener
         document.querySelectorAll('.prestige-buy').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const index = parseInt(e.target.dataset.index, 10);
@@ -1075,42 +1105,34 @@ function updatePrestigePanel() {
         });
     }
 
-// REEMPLAZA ESTA FUNCIÓN
-function buyPrestigeUpgrade(index) {
-    const pu = prestigeUpgrades[index];
-    const cost = pu.baseCost + pu.count;
-    
-    if (bellotas >= cost && (pu.maxLevel === -1 || pu.count < pu.maxLevel)) {
-        bellotas -= cost;
-        pu.count++;
+    function buyPrestigeUpgrade(index) {
+        const pu = prestigeUpgrades[index];
+        const cost = pu.baseCost + pu.count;
         
-        if (pu.id === 'perm_golden_1') goldenLeafSpawnTime *= 0.98;
+        if (bellotas >= cost && (pu.maxLevel === -1 || pu.count < pu.maxLevel)) {
+            bellotas -= cost;
+            pu.count++;
+            
+            if (pu.id === 'perm_golden_1') goldenLeafSpawnTime *= 0.98;
 
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Aplicar efectos de compra inmediata
-        if (pu.id === 'perm_start_1') {
-            const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
-            if (rakeUpgrade) {
-                // Asegurarse de no *quitar* rastrillos si ya tenías más
-                if (rakeUpgrade.count < 5) {
-                    rakeUpgrade.count = 5;
+            if (pu.id === 'perm_start_1') {
+                const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
+                if (rakeUpgrade) {
+                    if (rakeUpgrade.count < 5) {
+                        rakeUpgrade.count = 5;
+                    }
+                    renderStore(); 
                 }
-                // Necesitamos refrescar la tienda principal para ver los 5 rastrillos
-                renderStore(); 
             }
+            
+            recalculateHPS();
+            recalculateHPC();
+            updateUI();
+            renderPrestigePanel(); 
+            saveGame();
         }
-        // --- FIN DE LA CORRECCIÓN ---
-        
-        recalculateHPS();
-        recalculateHPC();
-        updateUI();
-        renderPrestigePanel(); // Refresca el panel de prestigio (para el botón 'Comprado')
-        saveGame();
     }
-}
-    
-    // --- *** CORRECCIÓN DEL BUG CRÍTICO DE PRESTIGIO *** ---
-    // La función ahora reinicia el estado antes de guardar y recargar.
+        
     function prestigeReset() {
         const bellotasGanadas = calculateBellotasToGain();
         if (totalLeavesPrestige < PRESTIGE_REQ) return;
@@ -1121,15 +1143,11 @@ function buyPrestigeUpgrade(index) {
 
         playAudio(buySound, 0.5);
         
-        // --- 1. CAPTURAR DATOS PERSISTENTES ---
-        // (Datos que sobreviven al reinicio)
         const bellotasActuales = bellotas + bellotasGanadas;
-        //const achievementsActuales = achievements; // El objeto de logros persiste
-        const totalClicksActuales = totalClicks; // Los clics totales persisten
-        const totalGoldenLeavesActuales = totalGoldenLeavesClicked; // Las hojas doradas persisten
-        const totalLeavesCollectedActuales = totalLeavesCollected; // El total histórico persiste
+        const totalClicksActuales = totalClicks; 
+        const totalGoldenLeavesActuales = totalGoldenLeavesClicked; 
+        const totalLeavesCollectedActuales = totalLeavesCollected; 
         
-        // (Variables/efectos de logros que persisten)
         const achMultipliers = achievementMultipliers;
         const gLeafSpawn = goldenLeafSpawnTime;
         const gLeafReward = goldenLeafRewardMultiplier;
@@ -1137,29 +1155,23 @@ function buyPrestigeUpgrade(index) {
         const clickFrenzyMult = clickFrenzyMultiplier;
         const gMultiplier = globalMultiplier;
 
-        // --- 2. REINICIAR ESTADO DEL JUEGO (GLOBALS) ---
         leaves = 0;
         totalLeavesPrestige = 0;
         boostEndTime = 0;
         currentWeatherEvent = null;
         
-        // Reiniciar contadores de mejoras
         upgrades.forEach(u => {
             u.count = 0;
-            // Bloquear mejoras de multiplicador
             if (u.requirement) {
                 u.unlocked = false;
             }
         });
 
-        // --- 3. REASIGNAR DATOS PERSISTENTES ---
         bellotas = bellotasActuales;
-        //achievements = achievementsActuales;
         totalClicks = totalClicksActuales;
         totalGoldenLeavesClicked = totalGoldenLeavesActuales;
         totalLeavesCollected = totalLeavesCollectedActuales;
         
-        // Reasignar efectos de logros
         achievementMultipliers = achMultipliers;
         goldenLeafSpawnTime = gLeafSpawn;
         goldenLeafRewardMultiplier = gLeafReward;
@@ -1167,8 +1179,6 @@ function buyPrestigeUpgrade(index) {
         clickFrenzyMultiplier = clickFrenzyMult;
         globalMultiplier = gMultiplier;
 
-        // --- 4. APLICAR MEJORAS DE PRESTIGIO ---
-        // (Ej. 'Rastrillo de Confianza')
         const startRakes = prestigeUpgrades.find(p => p.id === 'perm_start_1')?.count || 0;
         if (startRakes > 0) {
             const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
@@ -1179,10 +1189,9 @@ function buyPrestigeUpgrade(index) {
         recalculateHPC();
         updateUI();
         renderStore();
-        renderPrestigePanel(); // Actualizar botones de prestigio con nuevas bellotas
-        populateSceneryFromLoad(); // Limpiar el escenario visualmente
+        renderPrestigePanel(); 
+        populateSceneryFromLoad(); 
 
-        // --- 5. GUARDAR EL ESTADO LIMPIO Y RECARGAR ---
         saveGame();
         location.reload();
     }
@@ -1201,6 +1210,8 @@ function buyPrestigeUpgrade(index) {
         updateUI();
 
         setupFallingLeavesAnimation(); 
+        setupRain(); 
+        setupWind(); // *** NUEVO: Pre-genera las hojas de viento ***
 
         // Iniciar bucles principales
         setInterval(gameLoop, 1000);

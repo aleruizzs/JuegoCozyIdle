@@ -9,9 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css?v=1.1">
-    <script src="script.js?v=1.1" defer></script>
-</head>
+    <link rel="stylesheet" href="style.css"> <script src="script.js" defer></script> </head>
 <body>
 
     <div class="game-container">
@@ -19,6 +17,12 @@
         <div id="weather-event-bar" class="hidden"></div>
         
         <div class="clicker-section">
+            
+            <div id="weather-effects-container">
+                <div id="rain-container" class="weather-effect hidden"></div>
+                <div id="sun-overlay" class="weather-effect hidden"></div>
+                <div id="wind-container" class="weather-effect hidden"></div>
+            </div>
             
             <div id="falling-leaves-container"></div>
             <div class="clicker-content">

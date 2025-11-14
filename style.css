@@ -155,7 +155,9 @@ h3 { font-size: 1.4rem; color: var(--accent-color); margin-bottom: 10px;}
     position: absolute; top: -10%;
     color: var(--primary-color);
     font-size: 1.5rem; text-shadow: 0 0 5px white;
-    opacity: 0; animation: fall linear infinite;
+    opacity: 0; 
+    animation: fall linear infinite;
+    animation-duration: var(--base-leaf-fall-duration); /* Controlado por JS */
 }
 
 /* --- Contenido Clic (Layout Corregido) --- */
@@ -504,7 +506,8 @@ h3 { font-size: 1.4rem; color: var(--accent-color); margin-bottom: 10px;}
 
 /* --- FUENTES DE EMOJIS (Opcional) --- */
 #clicker-button, .scenery-slot, .upgrade-icon, .achievement-icon,
-.falling-leaf, .golden-leaf, .audio-btn, .floating-number, #prestige-gain {
+.falling-leaf, .golden-leaf, .audio-btn, .floating-number, #prestige-gain,
+.wind-leaf { /* Añadido .wind-leaf */
     font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
 }
 
@@ -517,3 +520,141 @@ h3 { font-size: 1.4rem; color: var(--accent-color); margin-bottom: 10px;}
     box-shadow: none !important;
     transform: none !important;
 }
+
+
+/* --- *** INICIO: ESTILOS DE CLIMA (ACTUALIZADOS) *** --- */
+
+/* 1. Contenedor General de Efectos */
+#weather-effects-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1; 
+    pointer-events: none; 
+    overflow: hidden; 
+}
+
+/* 2. Estilo base del efecto (para transiciones) */
+.weather-effect {
+    width: 100%; height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    opacity: 0;
+}
+.weather-effect:not(.hidden) {
+    opacity: 1; 
+}
+
+/* 3. Efecto de Lluvia */
+@keyframes rain-fall {
+    0% { transform: translateY(-100px); opacity: 0; }
+    10% { opacity: 0.6; } 
+    90% { opacity: 0.6; }
+    100% { transform: translateY(110vh); opacity: 0; }
+}
+.raindrop {
+    position: absolute;
+    width: 4px;
+    height: 60px; 
+    background: linear-gradient(to bottom, rgba(170, 200, 230, 0), var(--rain-color));
+    animation: rain-fall linear infinite;
+    opacity: 0; 
+}
+
+/* 4. Efecto de Sol */
+@keyframes sun-pulse {
+    0% { opacity: 0; transform: scale(1); }
+    3% { opacity: 0.6; transform: scale(1.02); }
+    25% { opacity: 0.8; transform: scale(1.05); }
+    50% { opacity: 0.9; transform: scale(1.08); }
+    75% { opacity: 0.8; transform: scale(1.05); }
+    95% { opacity: 0.4; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1); }
+}
+/* --- ESTA ES LA CORRECCIÓN --- */
+
+/* El contenedor principal AHORA SÓLO se encarga del fundido (fade-in/out) */
+#sun-overlay {
+    transition: opacity 1.5s ease-in-out;
+    /* Añadimos esto para que el pseudo-elemento funcione bien */
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Un pseudo-elemento INTERNO se encarga de la animación de pulso */
+#sun-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+
+    /* El fondo y la animación se mueven aquí */
+    background: radial-gradient(circle at 10% 10%, 
+    rgba(255, 230, 150, 0.5) 0%, 
+    rgba(255, 230, 150, 0) 60%
+ );
+ animation: sun-pulse 80s ease-in-out;
+}
+
+/* --- *** 5. EFECTO DE VIENTO (CORREGIDO A VERTICAL + INCLINACIÓN) *** --- */
+
+@keyframes wind-gust-right {
+    0% {
+        /* Empezar ARRIBA, en una posición X aleatoria (proporcionada por JS como --start-y) */
+        transform: translateY(-10vh) translateX(var(--start-y)) rotate(-20deg);
+        opacity: 0;
+    }
+    10% { 
+        /* Aparecer rápido */
+        opacity: 1; 
+    }
+    100% {
+        /* Terminar ABAJO, inclinándose a la DERECHA */
+        transform: translateY(120vh) translateX(calc(var(--start-y) + 15vw)) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes wind-gust-left {
+    0% {
+        /* Empezar ARRIBA, en una posición X aleatoria (JS la da como --start-y) */
+        transform: translateY(-10vh) translateX(var(--start-y)) rotate(20deg);
+        opacity: 0;
+    }
+    10% { 
+        /* Aparecer rápido */
+        opacity: 1; 
+    }
+    100% {
+        /* Terminar ABAJO, inclinándose a la IZQUIERDA */
+        transform: translateY(120vh) translateX(calc(var(--start-y) - 15vw)) rotate(-360deg);
+        opacity: 0;
+    }
+}
+
+.wind-leaf {
+    position: absolute;
+    top: 0; left: 0;
+    font-size: 1.2rem; /* Más pequeñas que las de fondo */
+    color: var(--primary-color);
+    text-shadow: 0 0 3px white;
+    opacity: 0; /* Empezar invisible */
+    
+    /* Propiedades de animación base */
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    /* JS asignará --start-y, animation-duration, y animation-delay */
+}
+
+/* Hojas impares van a la derecha */
+.wind-leaf:nth-child(odd) {
+    animation-name: wind-gust-right;
+}
+
+/* Hojas pares van a la izquierda */
+.wind-leaf:nth-child(even) {
+    animation-name: wind-gust-left;
+}
+
+/* --- *** FIN: ESTILOS DE CLIMA (ACTUALIZADOS) *** --- */

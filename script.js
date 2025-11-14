@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sceneryDisplay = document.getElementById('scenery-display');
     const clickerArea = document.querySelector('.clicker-area');
     const music = document.getElementById('music-lofi');
+    music.volume = 0.3;
     const clickSound = document.getElementById('sound-click');
     const buySound = document.getElementById('sound-buy');
     const musicToggleBtn = document.getElementById('music-toggle');
@@ -776,7 +777,6 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             isMusicEnabled = !isMusicEnabled;
             updateAudioButtonsUI();
             if (isMusicEnabled) {
-                music.volume = 0.3;
                 music.play();
             } else {
                 music.pause();
@@ -1064,7 +1064,33 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         
         setTimeout(endWeatherEvent, event.duration * 1000);
     }
-    
+
+    /**
+     * Baja el volumen de un audio suavemente y lo pausa.
+     * @param {HTMLAudioElement} audioElement - El elemento de audio.
+     * @param {number} duration - Duración del fade en milisegundos.
+     */
+    function fadeAudioOut(audioElement, duration = 1500) {
+        if (!audioElement || audioElement.paused) return; // No hacer nada si no está sonando
+        
+        let currentVolume = audioElement.volume;
+        let steps = 50;
+        let stepTime = duration / steps;
+        let volumeStep = currentVolume / steps;
+
+        let fadeInterval = setInterval(() => {
+            // Comprobar si podemos bajar más
+            if (audioElement.volume > volumeStep) {
+                audioElement.volume -= volumeStep;
+            } else {
+                // Si hemos llegado a 0, fijar volumen, pausar y parar
+                audioElement.volume = 0;
+                audioElement.pause();
+                clearInterval(fadeInterval);
+            }
+        }, stepTime);
+    }
+    // *** FIN: NUEVAS FUNCIONES DE FADE-IN/OUT PARA AUDIO ***
     // *** MODIFICADO: Añadido control de audio de clima ***
     function endWeatherEvent() {
         // --- Lógica para ocultar TODO ---
@@ -1072,9 +1098,9 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         sunOverlay.classList.add('hidden');
         windContainer.classList.add('hidden'); 
         
-        // --- Pausar sonidos de clima ---
-        if (rainSound) rainSound.pause();
-        if (windSound) windSound.pause();
+// --- Pausar sonidos de clima con FADE-OUT ---
+        fadeAudioOut(rainSound); // <-- CAMBIADO
+        fadeAudioOut(windSound); // <-- CAMBIADO
         
         currentWeatherEvent = null; 
         weatherEventBar.classList.add('hidden');

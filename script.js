@@ -705,12 +705,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateSceneryFromLoad() {
+        // Este bucle resetea los slots a su estado original (definido en CSS)
         sceneryDisplay.querySelectorAll('.scenery-slot').forEach(slot => {
             slot.textContent = '';
             slot.classList.remove('occupied');
-            slot.style.opacity = '0';
-            slot.style.transform = 'scale(0.5)';
+            
+            // --- LÍNEAS ELIMINADAS ---
+            // Se han borrado las líneas "slot.style.opacity = '0';"
+            // y "slot.style.transform = 'scale(0.5)';"
+            // que causaban el bug.
         });
+        
+        // Este bucle vuelve a llenar los slots según los datos guardados
         upgrades.forEach(upgrade => {
             if (scenerySlotMap[upgrade.id]) {
                 for (let i = 0; i < upgrade.count; i++) {
@@ -719,15 +725,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        setTimeout(() => {
-            sceneryDisplay.querySelectorAll('.scenery-slot').forEach(slot => {
-                if (slot.textContent) {
-                    slot.classList.add('occupied');
-                }
-            });
-        }, 10);
+        // --- BLOQUE ELIMINADO ---
+        // El 'setTimeout' que había aquí era redundante
+        // (ya que addSceneryItem añade la clase 'occupied')
+        // y se ha eliminado.
     }
-
     function setupAudioControls() {
         musicToggleBtn.addEventListener('click', () => {
             isMusicEnabled = !isMusicEnabled;

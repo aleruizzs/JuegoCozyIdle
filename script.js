@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const hpsCountDisplay = document.getElementById('hps-count');
     const hpcCountDisplay = document.getElementById('hpc-count');
     const clickerButton = document.getElementById('clicker-button');
-    const clickerSection = document.querySelector('.clicker-section'); 
+    const clickerSection = document.querySelector('.clicker-section');
     const storeContainer = document.getElementById('store-container');
     const sceneryDisplay = document.getElementById('scenery-display');
     const clickerArea = document.querySelector('.clicker-area');
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const achievementsPanel = document.getElementById('achievements-panel');
     const achievementsContainer = document.getElementById('achievements-container');
     const boostTimerDisplay = document.getElementById('boost-timer');
-    
+
     // Prestigio
     const prestigePanel = document.getElementById('prestige-panel');
     const prestigeGainDisplay = document.getElementById('prestige-gain');
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let leavesPerClick = 1;
     let baseClickValue = 1;
     let lastSaveTime = Date.now();
-    
+
     let isMusicEnabled = true;
     let isSfxEnabled = true;
     const buyAmountModes = [1, 10, 'max'];
@@ -99,22 +99,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let notificationQueue = [];
     let isNotificationShowing = false;
-    
+
     // Definición de Logros
     const achievements = {
-        'leaf_10k': { name: 'Bolsillo Lleno', desc: 'Recoge un total de 10,000 hojas.', icon: '💰', unlocked: false, condition: () => totalLeavesCollected >= 10000, reward: { text: '+1% HPS/HPC global', effect: () => globalMultiplier *= 1.01 }},
-        'leaf_1M': { name: 'Millonario de Hojas', desc: 'Recoge un total de 1,000,000 hojas.', icon: '🤑', unlocked: false, condition: () => totalLeavesCollected >= 1000000, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 }},
-        'leaf_1B': { name: 'Magnate de Hojas', desc: 'Recoge un total de 1 Billón de hojas.', icon: '👑', unlocked: false, condition: () => totalLeavesCollected >= 1000000000, reward: { text: '+10% HPS/HPC global', effect: () => globalMultiplier *= 1.10 }},
-        'click_100': { name: 'Dedo Ágil', desc: 'Haz clic 100 veces.', icon: '👆', unlocked: false, condition: () => totalClicks >= 100, reward: { text: '+1 al valor base de Clic', effect: () => baseClickValue++ }},
-        'click_1000': { name: 'Dedo Dorado', desc: 'Haz clic 1,000 veces.', icon: '👉', unlocked: false, condition: () => totalClicks >= 1000, reward: { text: '+10 al valor base de Clic', effect: () => baseClickValue += 10 }},
-        'click_100k': { name: 'Cliclista Olímpico', desc: 'Haz clic 100,000 veces.', icon: '🥇', unlocked: false, condition: () => totalClicks >= 100000, reward: { text: '+100 al valor base de Clic', effect: () => baseClickValue += 100 }},
-        'hps_100': { name: 'Piloto Automático', desc: 'Alcanza 100 HPS.', icon: '⏱️', unlocked: false, condition: () => leavesPerSecond >= 100, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 }},
-        'hps_1k': { name: 'Velocidad de Escape', desc: 'Alcanza 1,000 HPS.', icon: '🚀', unlocked: false, condition: () => leavesPerSecond >= 1000, reward: { text: 'El Frenesí de Clics ahora es x10', effect: () => clickFrenzyMultiplier = 10 }},
-        'cesto_50': { name: 'Maestro de Cestos', desc: 'Compra 50 Cestos.', icon: '🧺', unlocked: false, condition: () => (upgrades.find(u => u.id === 'cesto')?.count || 0) >= 50, reward: { text: 'Los Cestos x2', effect: () => achievementMultipliers.cesto *= 2 }},
-        'ardilla_50': { name: 'Líder de la Manada', desc: 'Compra 50 Ardillas.', icon: '🐿️', unlocked: false, condition: () => (upgrades.find(u => u.id === 'ardilla')?.count || 0) >= 50, reward: { text: 'Las Ardillas x2', effect: () => achievementMultipliers.ardilla *= 2 }},
-        'arbol_50': { name: 'Bosque Creciente', desc: 'Compra 50 Árboles.', icon: '🌳', unlocked: false, condition: () => (upgrades.find(u => u.id === 'arbol')?.count || 0) >= 50, reward: { text: 'Los Árboles x2', effect: () => achievementMultipliers.arbol *= 2 }},
-        'golden_1': { name: '¡Qué Suerte!', desc: 'Haz clic en 1 Hoja Dorada.', icon: '✨', unlocked: false, condition: () => totalGoldenLeavesClicked >= 1, reward: { text: 'Hojas Doradas 10% más rápido', effect: () => goldenLeafSpawnTime *= 0.9 }},
-        'golden_10': { name: 'Cazador de Oro', desc: 'Haz clic en 10 Hojas Doradas.', icon: '🌟', unlocked: false, condition: () => totalGoldenLeavesClicked >= 10, reward: { text: 'Recompensas de Hojas Doradas x2', effect: () => goldenLeafRewardMultiplier *= 2 }},
+        'leaf_10k': { name: 'Bolsillo Lleno', desc: 'Recoge un total de 10,000 hojas.', icon: '💰', unlocked: false, condition: () => totalLeavesCollected >= 10000, reward: { text: '+1% HPS/HPC global', effect: () => globalMultiplier *= 1.01 } },
+        'leaf_1M': { name: 'Millonario de Hojas', desc: 'Recoge un total de 1,000,000 hojas.', icon: '🤑', unlocked: false, condition: () => totalLeavesCollected >= 1000000, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 } },
+        'leaf_1B': { name: 'Magnate de Hojas', desc: 'Recoge un total de 1 Billón de hojas.', icon: '👑', unlocked: false, condition: () => totalLeavesCollected >= 1000000000, reward: { text: '+10% HPS/HPC global', effect: () => globalMultiplier *= 1.10 } },
+        'click_100': { name: 'Dedo Ágil', desc: 'Haz clic 100 veces.', icon: '👆', unlocked: false, condition: () => totalClicks >= 100, reward: { text: '+1 al valor base de Clic', effect: () => baseClickValue++ } },
+        'click_1000': { name: 'Dedo Dorado', desc: 'Haz clic 1,000 veces.', icon: '👉', unlocked: false, condition: () => totalClicks >= 1000, reward: { text: '+10 al valor base de Clic', effect: () => baseClickValue += 10 } },
+        'click_100k': { name: 'Cliclista Olímpico', desc: 'Haz clic 100,000 veces.', icon: '🥇', unlocked: false, condition: () => totalClicks >= 100000, reward: { text: '+100 al valor base de Clic', effect: () => baseClickValue += 100 } },
+        'hps_100': { name: 'Piloto Automático', desc: 'Alcanza 100 HPS.', icon: '⏱️', unlocked: false, condition: () => leavesPerSecond >= 100, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 } },
+        'hps_1k': { name: 'Velocidad de Escape', desc: 'Alcanza 1,000 HPS.', icon: '🚀', unlocked: false, condition: () => leavesPerSecond >= 1000, reward: { text: 'El Frenesí de Clics ahora es x10', effect: () => clickFrenzyMultiplier = 10 } },
+        'cesto_50': { name: 'Maestro de Cestos', desc: 'Compra 50 Cestos.', icon: '🧺', unlocked: false, condition: () => (upgrades.find(u => u.id === 'cesto')?.count || 0) >= 50, reward: { text: 'Los Cestos x2', effect: () => achievementMultipliers.cesto *= 2 } },
+        'ardilla_50': { name: 'Líder de la Manada', desc: 'Compra 50 Ardillas.', icon: '🐿️', unlocked: false, condition: () => (upgrades.find(u => u.id === 'ardilla')?.count || 0) >= 50, reward: { text: 'Las Ardillas x2', effect: () => achievementMultipliers.ardilla *= 2 } },
+        'arbol_50': { name: 'Bosque Creciente', desc: 'Compra 50 Árboles.', icon: '🌳', unlocked: false, condition: () => (upgrades.find(u => u.id === 'arbol')?.count || 0) >= 50, reward: { text: 'Los Árboles x2', effect: () => achievementMultipliers.arbol *= 2 } },
+        'golden_1': { name: '¡Qué Suerte!', desc: 'Haz clic en 1 Hoja Dorada.', icon: '✨', unlocked: false, condition: () => totalGoldenLeavesClicked >= 1, reward: { text: 'Hojas Doradas 10% más rápido', effect: () => goldenLeafSpawnTime *= 0.9 } },
+        'golden_10': { name: 'Cazador de Oro', desc: 'Haz clic en 10 Hojas Doradas.', icon: '🌟', unlocked: false, condition: () => totalGoldenLeavesClicked >= 10, reward: { text: 'Recompensas de Hojas Doradas x2', effect: () => goldenLeafRewardMultiplier *= 2 } },
     };
 
     // Mapeo de Emojis
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'vientos_huracanados': '🌪️', 'guantes_dorados': '🧤✨', 'otono_eterno': '👑',
         'cesta_misteriosa': '🎁'
     };
-    
+
     // Slots de Escenario
     const scenerySlotMap = {
         'cesto': ['slot-cesto-1', 'slot-cesto-2', 'slot-cesto-3', 'slot-cesto-4', 'slot-cesto-5'],
@@ -142,14 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'guantes', name: 'Guantes de Jardín', pluralName: 'Guantes de Jardín', baseCost: 50, type: 'click', value: 1, count: 0 },
         { id: 'rastrillo', name: 'Rastrillo', pluralName: 'Rastrillos', baseCost: 500, type: 'click', value: 5, count: 0 },
         { id: 'soplador', name: 'Soplador de Hojas', pluralName: 'Sopladores de Hojas', baseCost: 8000, type: 'click', value: 25, count: 0 },
-        { id: 'nidos', name: 'Nidos Acogedores', pluralName: 'Nidos Acogedores', baseCost: 10000, type: 'multiplier', value: 2, target: 'ardilla', count: 0, unlocked: false, requirement: { id: 'ardilla', count: 25 }},
-        { id: 'rastrillo_titanio', name: 'Rastrillo de Titanio', pluralName: 'Rastrillos de Titanio', baseCost: 50000, type: 'multiplier', value: 3, target: 'rastrillo', count: 0, unlocked: false, requirement: { id: 'rastrillo', count: 10 }},
-        { id: 'vientos_huracanados', name: 'Vientos Huracanados', pluralName: 'Vientos Huracanados', baseCost: 50000000, type: 'multiplier', value: 3, target: 'viento', count: 0, unlocked: false, requirement: { id: 'viento', count: 25 }},
-        { id: 'guantes_dorados', name: 'Guantes Dorados', pluralName: 'Guantes Dorados', baseCost: 75000000, type: 'multiplier', value: 5, target: 'soplador', count: 0, unlocked: false, requirement: { id: 'soplador', count: 25 }},
-        { id: 'otono_eterno', name: 'Otoño Eterno', pluralName: 'Otoños Eternos', baseCost: 1000000000, type: 'multiplier', value: 5, target: 'arbol', count: 0, unlocked: false, requirement: { id: 'arbol', count: 50 }},
+        { id: 'nidos', name: 'Nidos Acogedores', pluralName: 'Nidos Acogedores', baseCost: 10000, type: 'multiplier', value: 2, target: 'ardilla', count: 0, unlocked: false, requirement: { id: 'ardilla', count: 25 } },
+        { id: 'rastrillo_titanio', name: 'Rastrillo de Titanio', pluralName: 'Rastrillos de Titanio', baseCost: 50000, type: 'multiplier', value: 3, target: 'rastrillo', count: 0, unlocked: false, requirement: { id: 'rastrillo', count: 10 } },
+        { id: 'vientos_huracanados', name: 'Vientos Huracanados', pluralName: 'Vientos Huracanados', baseCost: 50000000, type: 'multiplier', value: 3, target: 'viento', count: 0, unlocked: false, requirement: { id: 'viento', count: 25 } },
+        { id: 'guantes_dorados', name: 'Guantes Dorados', pluralName: 'Guantes Dorados', baseCost: 75000000, type: 'multiplier', value: 5, target: 'soplador', count: 0, unlocked: false, requirement: { id: 'soplador', count: 25 } },
+        { id: 'otono_eterno', name: 'Otoño Eterno', pluralName: 'Otoños Eternos', baseCost: 1000000000, type: 'multiplier', value: 5, target: 'arbol', count: 0, unlocked: false, requirement: { id: 'arbol', count: 50 } },
         { id: 'cesta_misteriosa', name: 'Cesta Misteriosa', pluralName: 'Cestas Misteriosas', baseCost: 10000, type: 'consumable', value: 0, count: 0, unlocked: true }
     ];
-    
+
     // Mejoras de Prestigio
     let prestigeUpgrades = [
         { id: 'perm_multi_1', name: 'Hojas Ancestrales', desc: 'Todas las hojas (HPS y HPC) valen +1% por nivel.', baseCost: 1, count: 0, maxLevel: -1 },
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. FUNCIONES DE LÓGICA DEL JUEGO ---
 
-// --- REEMPLAZA esta función ---
+    // --- REEMPLAZA esta función ---
     function getUpgradeCost(upgrade, n) {
         // --- MODIFICADO: Coste de la Cesta Misteriosa ---
         if (upgrade.type === 'consumable') {
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Esto evita que se pueda "spamear"
             return Math.floor(leavesPerSecond * 600) + 10000;
         }
-        
+
         // Lógica de coste normal (sin cambios)
         const baseCost = upgrade.baseCost;
         const count = upgrade.count;
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cost = baseCost * (Math.pow(rate, count) * (Math.pow(rate, n) - 1)) / (rate - 1);
         return Math.floor(cost);
     }
-    
+
     function calculateMaxBuy(upgrade) {
         if (upgrade.type === 'consumable') return 1;
 
@@ -189,13 +189,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let availableLeaves = leaves;
         const costToNext = baseCost * Math.pow(rate, count);
         if (availableLeaves < costToNext) return 0;
-        const n = Math.floor(Math.log( (availableLeaves * (rate - 1)) / (costToNext) + 1 ) / Math.log(rate));
+        const n = Math.floor(Math.log((availableLeaves * (rate - 1)) / (costToNext) + 1) / Math.log(rate));
         return n;
     }
 
     function buyUpgrade(upgradeIndex) {
         const upgrade = upgrades[upgradeIndex];
-        
+
         if (upgrade.type === 'consumable') {
             const cost = getUpgradeCost(upgrade, 1);
             if (leaves >= cost) {
@@ -226,14 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (leaves >= totalCost && amountToBuy > 0) {
             leaves -= totalCost;
-            
+
             if (scenerySlotMap[upgrade.id]) {
                 for (let i = 0; i < amountToBuy; i++) {
                     const itemIndex = upgrade.count + i;
                     addSceneryItem(upgrade.id, itemIndex);
                 }
             }
-            
+
             if (upgrade.type === 'multiplier') {
                 upgrade.count = 1;
             } else {
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             recalculateHPC();
 
             checkUnlockConditions(upgrade.id, upgrade.count);
-            
+
             renderStore();
             updateUI();
             playAudio(buySound);
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-        
+
         if (storeNeedsRender) {
             renderStore();
         }
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function recalculateHPS() {
         let totalHPS = 0;
         let hpsGroups = {};
-        
+
         upgrades.filter(u => u.type === 'hps').forEach(u => {
             let itemHPS = u.value * u.count;
             if (achievementMultipliers[u.id]) {
@@ -290,17 +290,17 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const id in hpsGroups) {
             totalHPS += hpsGroups[id];
         }
-        
+
         const bellotaBonus = 1 + (bellotas * 0.01) + (prestigeUpgrades.find(p => p.id === 'perm_multi_1')?.count || 0) * 0.01;
         const weatherBonus = (currentWeatherEvent && (currentWeatherEvent.target === 'hps' || currentWeatherEvent.target === 'all')) ? currentWeatherEvent.multiplier : 1;
-        
+
         leavesPerSecond = totalHPS * globalMultiplier * bellotaBonus * weatherBonus;
     }
 
     function recalculateHPC() {
         let totalHPC = baseClickValue;
         let hpcGroups = {};
-        
+
         upgrades.filter(u => u.type === 'click').forEach(u => {
             let itemHPC = u.value * u.count;
             if (achievementMultipliers[u.id]) {
@@ -314,31 +314,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 hpcGroups[mult.target] *= mult.value;
             }
         });
-        
+
         for (const id in hpcGroups) {
             totalHPC += hpcGroups[id];
         }
-        
+
         const bellotaBonus = 1 + (bellotas * 0.01) + (prestigeUpgrades.find(p => p.id === 'perm_multi_1')?.count || 0) * 0.01;
         const weatherBonus = (currentWeatherEvent && (currentWeatherEvent.target === 'click' || currentWeatherEvent.target === 'all')) ? currentWeatherEvent.multiplier : 1;
-        
+
         leavesPerClick = totalHPC * globalMultiplier * bellotaBonus * weatherBonus;
     }
 
     function clickLeaf() {
         totalClicks++;
-        
+
         let clickValue = leavesPerClick;
-        
+
         if (Date.now() < boostEndTime) {
             clickValue *= clickFrenzyMultiplier;
         }
-        
+
         const leavesGained = clickValue;
         leaves += leavesGained;
         totalLeavesCollected += leavesGained;
         totalLeavesPrestige += leavesGained;
-        
+
         updateUI();
         playAudio(clickSound);
         clickerButton.classList.add('popping');
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         leaves += leavesGained;
         totalLeavesCollected += leavesGained;
         totalLeavesPrestige += leavesGained;
-        
+
         updateUI();
 
         if (buyAmountModes[currentBuyModeIndex] === 'max') {
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkAchievements();
         updateBoostTimer();
         updatePrestigePanel();
-        
+
         if (currentWeatherEvent && Date.now() > eventEndTime) {
             endWeatherEvent();
         }
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 4. FUNCIONES DE RENDERIZADO Y UI ---
-    
+
     function updateUI() {
         leafCountDisplay.textContent = Math.floor(leaves).toLocaleString('es');
         hpsCountDisplay.textContent = leavesPerSecond.toFixed(1).toLocaleString('es');
@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sortedUpgrades.forEach(upgrade => {
             const originalIndex = upgrades.findIndex(u => u.id === upgrade.id);
-            
+
             if (upgrade.unlocked === false) {
                 if (currentType !== 'locked') {
                     currentType = 'locked';
@@ -476,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 amountToDisplay = buyAmount; costToDisplay = getUpgradeCost(upgrade, amountToDisplay); buyText = 'Comprar';
             }
-            
+
             const isDisabled = (upgrade.type === 'multiplier' && upgrade.count > 0);
             const detailText = upgrade.type === 'hps' ? `HPS: +${upgrade.value}` : (upgrade.type === 'click' ? `Clic: +${upgrade.value}` : `Multiplica ${upgrade.target} x${upgrade.value}`);
             const emojiIcon = itemEmojis[upgrade.id] || '';
@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.querySelector('.buy-button').addEventListener('click', () => buyUpgrade(originalIndex));
             storeContainer.appendChild(item);
         });
-        
+
         updateStoreAvailability();
     }
 
@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         upgrades.forEach(upgrade => {
             const buttonElement = document.getElementById(`buy-${upgrade.id}`);
             if (!buttonElement || (upgrade.type === 'multiplier' && upgrade.count > 0) || upgrade.unlocked === false || upgrade.type === 'consumable') return;
-            
+
             const itemElement = buttonElement.closest('.upgrade-item');
             const costElement = itemElement.querySelector('.upgrade-cost');
             let amountToDisplay = calculateMaxBuy(upgrade);
@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
         number.addEventListener('animationend', () => number.remove());
     }
 
-function showNotification(title, message, icon = '🔔', duration = 2800) {
+    function showNotification(title, message, icon = '🔔', duration = 2800) {
         notificationQueue.push({ title, message, icon, duration });
         if (!isNotificationShowing) {
             processNotificationQueue();
@@ -595,7 +595,7 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         `;
         const slideOutTime = duration - 500;
         notification.style.animation = `slideIn 0.5s ease-out forwards, slideOut 0.5s ease-in ${slideOutTime}ms forwards`;
-        
+
         // --- MODIFICACIÓN CLAVE ---
         // Cuando la notificación termina (o se hace clic)...
         const onNotificationEnd = () => {
@@ -603,7 +603,7 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             isNotificationShowing = false; // ...avisamos que el hueco está libre...
             processNotificationQueue();    // ...y comprobamos si hay más en la cola.
         };
-        
+
         setTimeout(onNotificationEnd, duration);
         notification.addEventListener('click', onNotificationEnd);
         // --- FIN DE MODIFICACIÓN ---
@@ -645,18 +645,18 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         const savedData = localStorage.getItem('cozyClickerSave');
         if (savedData) {
             const loadedState = JSON.parse(savedData);
-            
+
             leaves = loadedState.leaves || 0;
             totalLeavesCollected = loadedState.totalLeavesCollected || leaves;
             totalClicks = loadedState.totalClicks || 0;
             totalGoldenLeavesClicked = loadedState.totalGoldenLeavesClicked || 0;
             totalLeavesPrestige = loadedState.totalLeavesPrestige || 0;
-            
+
             isMusicEnabled = loadedState.isMusicEnabled !== false;
             isSfxEnabled = loadedState.isSfxEnabled !== false;
             globalMultiplier = loadedState.globalMultiplier || 1;
             boostEndTime = loadedState.boostEndTime || 0;
-            
+
             achievementMultipliers = loadedState.achievementMultipliers || achievementMultipliers;
             goldenLeafSpawnTime = loadedState.goldenLeafSpawnTime || 40;
             goldenLeafRewardMultiplier = loadedState.goldenLeafRewardMultiplier || 1;
@@ -697,9 +697,9 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
                 let offlineSeconds = (now - loadedState.lastSaveTime) / 1000;
                 const maxOfflineSeconds = 8 * 60 * 60;
                 offlineSeconds = Math.min(offlineSeconds, maxOfflineSeconds);
-                
+
                 recalculateHPS();
-                
+
                 let offlineLeaves = Math.floor(offlineSeconds * leavesPerSecond);
                 if (offlineLeaves > 0) {
                     leaves += offlineLeaves;
@@ -709,20 +709,20 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
                 }
             }
         }
-        
+
         recalculateHPS();
         recalculateHPC();
         updateAudioButtonsUI();
         populateSceneryFromLoad();
         renderAchievements();
         renderPrestigePanel();
-        
+
         checkUnlockConditions();
         checkAchievements();
     }
 
     // --- 6. FUNCIONES DE AUDIO, FONDO Y NUEVAS CARACTERÍSTICAS ---
-    
+
     // *** MODIFICADO: Volumen por defecto a 0.5 (50%) ***
     function playAudio(audioElement, volume = 0.5) {
         if (!isSfxEnabled || !audioElement) return; // Añadida comprobación de seguridad
@@ -736,11 +736,11 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         if (!slots || itemIndex >= slots.length) return;
         const slotId = slots[itemIndex];
         const slotElement = document.getElementById(slotId);
-        
+
         if (slotElement && !slotElement.classList.contains('occupied')) {
             slotElement.textContent = itemEmojis[upgradeId];
             slotElement.style.setProperty('--i', itemIndex);
-            
+
             slotElement.classList.add('occupied');
         }
     }
@@ -751,22 +751,22 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         sceneryDisplay.querySelectorAll('.scenery-slot').forEach(slot => {
             slot.textContent = '';
             slot.classList.remove('occupied');
-            
+
             // --- LÍNEAS ELIMINADAS ---
             // Se han borrado las líneas "slot.style.opacity = '0';"
             // y "slot.style.transform = 'scale(0.5)';"
             // que causaban el bug.
         });
-        
+
         // Este bucle vuelve a llenar los slots según los datos guardados
         upgrades.forEach(upgrade => {
             if (scenerySlotMap[upgrade.id]) {
                 for (let i = 0; i < upgrade.count; i++) {
-                    addSceneryItem(upgrade.id, i, true); 
+                    addSceneryItem(upgrade.id, i, true);
                 }
             }
         });
-        
+
         // --- BLOQUE ELIMINADO ---
         // El 'setTimeout' que había aquí era redundante y se ha eliminado.
     }
@@ -806,37 +806,36 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             sfxToggleBtn.classList.add('off');
         }
     }
-
     function setupFallingLeavesAnimation() {
         const container = document.getElementById('falling-leaves-container');
         if (!container) return;
-        
+
         const numberOfLeaves = 35;
         for (let i = 0; i < numberOfLeaves; i++) {
             const leaf = document.createElement('span');
             leaf.className = 'falling-leaf';
             leaf.textContent = '🍂';
             leaf.style.left = `${Math.random() * 100}%`;
-            
+
             const baseDuration = Math.random() * 5 + 10;
             leaf.style.setProperty('--base-leaf-fall-duration', `${baseDuration}s`);
-            
+
             leaf.style.animationDuration = `var(--base-leaf-fall-duration)`;
-            
+
             leaf.style.animationDelay = `${Math.random() * 15}s`;
             leaf.style.fontSize = `${Math.random() * 0.5 + 1}rem`;
             container.appendChild(leaf);
         }
     }
-    
+
     function setupRain() {
         if (!rainContainer) return;
-        rainContainer.innerHTML = ''; 
+        rainContainer.innerHTML = '';
         for (let i = 0; i < 100; i++) {
             const drop = document.createElement('div');
             drop.className = 'raindrop';
             drop.style.left = `${Math.random() * 100}%`;
-            drop.style.animationDuration = `${Math.random() * 0.5 + 0.3}s`; 
+            drop.style.animationDuration = `${Math.random() * 0.5 + 0.3}s`;
             drop.style.animationDelay = `${Math.random() * 2}s`;
             rainContainer.appendChild(drop);
         }
@@ -845,14 +844,14 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
     function setupWind() {
         if (!windContainer) return;
         windContainer.innerHTML = '';
-        for (let i = 0; i < 50; i++) { 
+        for (let i = 0; i < 50; i++) {
             const leaf = document.createElement('div');
             leaf.className = 'wind-leaf';
             leaf.textContent = '🍂';
-            
-            leaf.style.setProperty('--start-y', `${Math.random() * 100}vw`); 
-            leaf.style.animationDuration = `${Math.random() * 3.5 + 1.5}s`; 
-            leaf.style.animationDelay = `${Math.random() * 3}s`; 
+
+            leaf.style.setProperty('--start-y', `${Math.random() * 100}vw`);
+            leaf.style.animationDuration = `${Math.random() * 3.5 + 1.5}s`;
+            leaf.style.animationDelay = `${Math.random() * 3}s`;
             windContainer.appendChild(leaf);
         }
     }
@@ -867,7 +866,7 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t?.classList.remove('active'));
                 panels.forEach(p => p?.classList.add('hidden'));
-                
+
                 tab.classList.add('active');
                 if (panels[index]) {
                     panels[index].classList.remove('hidden');
@@ -910,10 +909,10 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
                     needsRecalc = true;
                 }
                 showNotification(`¡Logro Desbloqueado!`, `${ach.name}`, ach.icon);
-                
+
                 // *** MODIFICADO: Sonido de Logro ***
-                playAudio(notificationSound); 
-                
+                playAudio(notificationSound);
+
                 needsRender = true;
             }
         }
@@ -929,16 +928,16 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         const leaf = document.createElement('div');
         leaf.className = 'golden-leaf';
         leaf.textContent = '🍂';
-        
+
         const startX = Math.random() * 80 + 10;
         const sway = (Math.random() - 0.5) * 2;
         leaf.style.setProperty('--start-x', `${startX}%`);
         leaf.style.setProperty('--sway', sway);
-        
+
         leaf.addEventListener('click', clickGoldenLeaf, { once: true });
-        
+
         clickerSection.appendChild(leaf);
-        
+
         setTimeout(() => {
             leaf.remove();
         }, goldenLeafDuration * 1000);
@@ -946,10 +945,10 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
 
     function clickGoldenLeaf(event) {
         event.target.remove();
-        
+
         // *** MODIFICADO: Sonido de Hoja Dorada ***
-        playAudio(goldenLeafSound); 
-        
+        playAudio(goldenLeafSound);
+
         totalGoldenLeavesClicked++;
 
         if (Math.random() < 0.7) {
@@ -957,7 +956,7 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             const clickReward = Math.floor(leavesPerClick * 100 * goldenLeafRewardMultiplier);
             const minReward = 25;
             const reward = Math.max(hpsReward, clickReward, minReward);
-            
+
             leaves += reward;
             totalLeavesCollected += reward;
             totalLeavesPrestige += reward;
@@ -969,17 +968,17 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         }
         updateUI();
     }
-    
+
     function goldenLeafLoop() {
         const randomFactor = (Math.random() * 0.5) + 0.5;
         const time = (randomFactor * goldenLeafSpawnTime) * 1000;
-        
+
         setTimeout(() => {
             spawnGoldenLeaf();
             goldenLeafLoop();
         }, time);
     }
-    
+
     function updateBoostTimer() {
         if (Date.now() < boostEndTime) {
             const timeLeft = ((boostEndTime - Date.now()) / 1000).toFixed(0);
@@ -989,27 +988,27 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             boostTimerDisplay.classList.add('hidden');
         }
     }
-    
+
     function openMysteryChest() {
         const roll = Math.random();
-        
+
         if (roll < 0.50) { // 50% - Nada
             showNotification("¡Vaya!", "La cesta estaba vacía...", '💨');
-        
+
         } else if (roll < 0.75) { // 25% - Hojas (1 min de HPS)
             const reward = Math.floor(leavesPerSecond * 60 * goldenLeafRewardMultiplier);
             leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
             showNotification("¡Algo es algo!", `¡La cesta contenía ${reward.toLocaleString('es')} hojas!`, '💰');
-        
+
         } else if (roll < 0.90) { // 15% - Hojas (20 mins de HPS)
             const reward = Math.floor(leavesPerSecond * 1200 * goldenLeafRewardMultiplier);
             leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
             showNotification("¡Premio!", `¡La cesta contenía ${reward.toLocaleString('es')} hojas!`, '💰');
-        
+
         } else if (roll < 0.95) { // 5% - Frenesí (15s)
             boostEndTime = Date.now() + 15000; // 15 segundos
             showNotification("¡Frenesí!", `¡Clics x${clickFrenzyMultiplier} por 15 segundos!`, '⚡');
-        
+
         } else { // 5% - 1 Bellota (solo si ya has hecho prestigio)
             if (bellotas > 0 || totalLeavesPrestige >= PRESTIGE_REQ) {
                 bellotas++;
@@ -1020,9 +1019,8 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         }
         updateUI();
     }
-
     function weatherEventLoop() {
-        const time = (Math.random() * 45 + 45) * 1000; 
+        const time = (Math.random() * 45 + 45) * 1000;
         //const time = 5 * 1000;
         setTimeout(() => {
             startWeatherEvent();
@@ -1036,13 +1034,17 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         const event = weatherEvents[Math.floor(Math.random() * weatherEvents.length)];
         currentWeatherEvent = event;
         eventEndTime = Date.now() + (event.duration * 1000);
-        
+
         weatherEventBar.textContent = `${event.name}: ${event.text}`;
         weatherEventBar.className = event.id;
 
         // --- Lógica para mostrar efectos Y SONIDOS ---
         if (event.id === 'rain') {
             rainContainer.classList.remove('hidden');
+            // Forzar reflow para que la transición funcione
+            void rainContainer.offsetWidth;
+            rainContainer.classList.add('active');
+
             if (isSfxEnabled && rainSound) {
                 rainSound.volume = 0.07;
                 rainSound.currentTime = 0;
@@ -1050,8 +1052,16 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             }
         } else if (event.id === 'sun') {
             sunOverlay.classList.remove('hidden');
+            // Forzar reflow
+            void sunOverlay.offsetWidth;
+            sunOverlay.classList.add('active');
+
         } else if (event.id === 'wind') {
             windContainer.classList.remove('hidden');
+            // Forzar reflow
+            void windContainer.offsetWidth;
+            windContainer.classList.add('active');
+
             if (isSfxEnabled && windSound) {
                 windSound.volume = 0.2;
                 windSound.currentTime = 0;
@@ -1061,8 +1071,180 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
 
         recalculateHPS();
         recalculateHPC();
-        
+
         setTimeout(endWeatherEvent, event.duration * 1000);
+    }
+
+    // Lógica de Prestigio
+    function calculateBellotasToGain() {
+        return Math.floor(Math.pow(totalLeavesPrestige / 1e9, 1 / 3) * 10);
+    }
+
+    function updatePrestigePanel() {
+        if (!prestigePanel.classList.contains('hidden')) {
+            const bellotasToGain = calculateBellotasToGain();
+            prestigeTotalLeavesDisplay.textContent = Math.floor(totalLeavesPrestige).toLocaleString('es');
+            prestigeGainDisplay.textContent = `${bellotasToGain.toLocaleString('es')} 🌰`;
+
+            if (totalLeavesPrestige >= PRESTIGE_REQ) {
+                prestigeResetButton.disabled = false;
+            } else {
+                prestigeResetButton.disabled = true;
+            }
+
+            document.querySelectorAll('.prestige-buy').forEach(button => {
+                const index = parseInt(button.dataset.index, 10);
+                if (isNaN(index)) return;
+
+                const pu = prestigeUpgrades[index];
+                if (!pu) return;
+
+                const cost = pu.baseCost + pu.count;
+                const isTooExpensive = bellotas < cost;
+                const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
+
+                button.disabled = (isTooExpensive || isMaxLevel);
+            });
+        }
+    }
+
+    function renderPrestigePanel() {
+        prestigeUpgradeContainer.innerHTML = '<h3>Mejoras Permanentes</h3>';
+
+        prestigeUpgrades.forEach((pu, index) => {
+            const cost = pu.baseCost + pu.count;
+
+            const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
+            const isTooExpensive = bellotas < cost;
+            const maxLevelText = isMaxLevel ? '(Max)' : '';
+
+            const item = document.createElement('div');
+            item.className = 'prestige-upgrade';
+
+            const info = document.createElement('div');
+            info.className = 'upgrade-info';
+            info.innerHTML = `
+                <strong>${pu.name} ${maxLevelText}</strong>
+                <div class="details">${pu.desc} (Nivel ${pu.count})</div>
+                <div class="details bellota">Coste: ${cost} 🌰</div>
+            `;
+
+            const button = document.createElement('button');
+            button.className = 'buy-button prestige-buy';
+            button.textContent = 'Comprar';
+            button.dataset.index = index;
+
+            if (isMaxLevel) {
+                button.textContent = 'Comprado';
+            } else {
+                button.textContent = 'Comprar';
+            }
+
+            button.disabled = (isTooExpensive || isMaxLevel);
+
+            item.appendChild(info);
+            item.appendChild(button);
+            prestigeUpgradeContainer.appendChild(item);
+        });
+
+        document.querySelectorAll('.prestige-buy').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index, 10);
+                buyPrestigeUpgrade(index);
+            });
+        });
+    }
+
+    function buyPrestigeUpgrade(index) {
+        const pu = prestigeUpgrades[index];
+        const cost = pu.baseCost + pu.count;
+
+        if (bellotas >= cost && (pu.maxLevel === -1 || pu.count < pu.maxLevel)) {
+            bellotas -= cost;
+            pu.count++;
+
+            if (pu.id === 'perm_golden_1') goldenLeafSpawnTime *= 0.98;
+
+            if (pu.id === 'perm_start_1') {
+                const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
+                if (rakeUpgrade) {
+                    if (rakeUpgrade.count < 5) {
+                        rakeUpgrade.count = 5;
+                    }
+                    renderStore();
+                }
+            }
+
+            recalculateHPS();
+            recalculateHPC();
+            updateUI();
+            renderPrestigePanel();
+            saveGame();
+        }
+    }
+
+    function prestigeReset() {
+        const bellotasGanadas = calculateBellotasToGain();
+        if (totalLeavesPrestige < PRESTIGE_REQ) return;
+
+        if (!confirm(`¿Estás seguro? Reiniciarás tu progreso (hojas y mejoras) y ganarás ${bellotasGanadas} 🌰 Bellotas Doradas.`)) {
+            return;
+        }
+
+        // *** MODIFICADO: Sonido de Prestigio (Level Up) ***
+        playAudio(levelUpSound);
+
+        const bellotasActuales = bellotas + bellotasGanadas;
+        const totalClicksActuales = totalClicks;
+        const totalGoldenLeavesActuales = totalGoldenLeavesClicked;
+        const totalLeavesCollectedActuales = totalLeavesCollected;
+
+        const achMultipliers = achievementMultipliers;
+        const gLeafSpawn = goldenLeafSpawnTime;
+        const gLeafReward = goldenLeafRewardMultiplier;
+        const baseClick = baseClickValue;
+        const clickFrenzyMult = clickFrenzyMultiplier;
+        const gMultiplier = globalMultiplier;
+
+        leaves = 0;
+        totalLeavesPrestige = 0;
+        boostEndTime = 0;
+        currentWeatherEvent = null;
+
+        upgrades.forEach(u => {
+            u.count = 0;
+            if (u.requirement) {
+                u.unlocked = false;
+            }
+        });
+
+        bellotas = bellotasActuales;
+        totalClicks = totalClicksActuales;
+        totalGoldenLeavesClicked = totalGoldenLeavesActuales;
+        totalLeavesCollected = totalLeavesCollectedActuales;
+
+        achievementMultipliers = achMultipliers;
+        goldenLeafSpawnTime = gLeafSpawn;
+        goldenLeafRewardMultiplier = gLeafReward;
+        baseClickValue = baseClick;
+        clickFrenzyMultiplier = clickFrenzyMult;
+        globalMultiplier = gMultiplier;
+
+        const startRakes = prestigeUpgrades.find(p => p.id === 'perm_start_1')?.count || 0;
+        if (startRakes > 0) {
+            const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
+            if (rakeUpgrade) rakeUpgrade.count = 5;
+        }
+
+        recalculateHPS();
+        recalculateHPC();
+        updateUI();
+        renderStore();
+        renderPrestigePanel();
+        populateSceneryFromLoad();
+
+        saveGame();
+        location.reload();
     }
 
     /**
@@ -1072,7 +1254,7 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
      */
     function fadeAudioOut(audioElement, duration = 1500) {
         if (!audioElement || audioElement.paused) return; // No hacer nada si no está sonando
-        
+
         let currentVolume = audioElement.volume;
         let steps = 50;
         let stepTime = duration / steps;
@@ -1090,196 +1272,37 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
             }
         }, stepTime);
     }
-    // *** FIN: NUEVAS FUNCIONES DE FADE-IN/OUT PARA AUDIO ***
+
     // *** MODIFICADO: Añadido control de audio de clima ***
     function endWeatherEvent() {
-        // --- Lógica para ocultar TODO ---
-        rainContainer.classList.add('hidden');
-        sunOverlay.classList.add('hidden');
-        windContainer.classList.add('hidden'); 
-        
-// --- Pausar sonidos de clima con FADE-OUT ---
-        fadeAudioOut(rainSound); // <-- CAMBIADO
-        fadeAudioOut(windSound); // <-- CAMBIADO
-        
-        currentWeatherEvent = null; 
+        // --- Lógica para ocultar TODO con transición ---
+
+        // 1. Quitar clase active para iniciar fade-out
+        rainContainer.classList.remove('active');
+        sunOverlay.classList.remove('active');
+        windContainer.classList.remove('active');
+
+        // --- Pausar sonidos de clima con FADE-OUT ---
+        fadeAudioOut(rainSound);
+        fadeAudioOut(windSound);
+
+        // 2. Esperar a que termine la transición (1.5s) antes de ocultar (display: none)
+        setTimeout(() => {
+            // Solo ocultar si NO se ha activado otro evento mientras tanto
+            if (!currentWeatherEvent) {
+                rainContainer.classList.add('hidden');
+                sunOverlay.classList.add('hidden');
+                windContainer.classList.add('hidden');
+            }
+        }, 1500);
+
+        currentWeatherEvent = null;
         weatherEventBar.classList.add('hidden');
 
         recalculateHPS();
         recalculateHPC();
-        
+
         weatherEventLoop();
-    }    
-    // Lógica de Prestigio
-    function calculateBellotasToGain() {
-        return Math.floor(Math.pow(totalLeavesPrestige / 1e9, 1/3) * 10);
-    }
-    
-    function updatePrestigePanel() {
-        if (!prestigePanel.classList.contains('hidden')) {
-            const bellotasToGain = calculateBellotasToGain();
-            prestigeTotalLeavesDisplay.textContent = Math.floor(totalLeavesPrestige).toLocaleString('es');
-            prestigeGainDisplay.textContent = `${bellotasToGain.toLocaleString('es')} 🌰`;
-            
-            if (totalLeavesPrestige >= PRESTIGE_REQ) {
-                prestigeResetButton.disabled = false;
-            } else {
-                prestigeResetButton.disabled = true;
-            }
-
-            document.querySelectorAll('.prestige-buy').forEach(button => {
-                const index = parseInt(button.dataset.index, 10);
-                if (isNaN(index)) return; 
-
-                const pu = prestigeUpgrades[index];
-                if (!pu) return; 
-
-                const cost = pu.baseCost + pu.count;
-                const isTooExpensive = bellotas < cost;
-                const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
-                
-                button.disabled = (isTooExpensive || isMaxLevel);
-            });
-        }
-    }
-        
-    function renderPrestigePanel() {
-        prestigeUpgradeContainer.innerHTML = '<h3>Mejoras Permanentes</h3>';
-        
-        prestigeUpgrades.forEach((pu, index) => {
-            const cost = pu.baseCost + pu.count;
-
-            const isMaxLevel = (pu.maxLevel !== -1 && pu.count >= pu.maxLevel);
-            const isTooExpensive = bellotas < cost;
-            const maxLevelText = isMaxLevel ? '(Max)' : '';
-        
-            const item = document.createElement('div');
-            item.className = 'prestige-upgrade';
-
-            const info = document.createElement('div');
-            info.className = 'upgrade-info';
-            info.innerHTML = `
-                <strong>${pu.name} ${maxLevelText}</strong>
-                <div class="details">${pu.desc} (Nivel ${pu.count})</div>
-                <div class="details bellota">Coste: ${cost} 🌰</div>
-            `;
-
-            const button = document.createElement('button');
-            button.className = 'buy-button prestige-buy';
-            button.textContent = 'Comprar';
-            button.dataset.index = index;
-            
-            if (isMaxLevel) {
-                button.textContent = 'Comprado';
-            } else {
-                button.textContent = 'Comprar';
-            }
-
-            button.disabled = (isTooExpensive || isMaxLevel);
-            
-            item.appendChild(info);
-            item.appendChild(button);
-            prestigeUpgradeContainer.appendChild(item);
-        });
-
-        document.querySelectorAll('.prestige-buy').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index, 10);
-                buyPrestigeUpgrade(index);
-            });
-        });
-    }
-
-    function buyPrestigeUpgrade(index) {
-        const pu = prestigeUpgrades[index];
-        const cost = pu.baseCost + pu.count;
-        
-        if (bellotas >= cost && (pu.maxLevel === -1 || pu.count < pu.maxLevel)) {
-            bellotas -= cost;
-            pu.count++;
-            
-            if (pu.id === 'perm_golden_1') goldenLeafSpawnTime *= 0.98;
-
-            if (pu.id === 'perm_start_1') {
-                const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
-                if (rakeUpgrade) {
-                    if (rakeUpgrade.count < 5) {
-                        rakeUpgrade.count = 5;
-                    }
-                    renderStore(); 
-                }
-            }
-            
-            recalculateHPS();
-            recalculateHPC();
-            updateUI();
-            renderPrestigePanel(); 
-            saveGame();
-        }
-    }
-        
-    function prestigeReset() {
-        const bellotasGanadas = calculateBellotasToGain();
-        if (totalLeavesPrestige < PRESTIGE_REQ) return;
-        
-        if (!confirm(`¿Estás seguro? Reiniciarás tu progreso (hojas y mejoras) y ganarás ${bellotasGanadas} 🌰 Bellotas Doradas.`)) {
-            return;
-        }
-
-        // *** MODIFICADO: Sonido de Prestigio (Level Up) ***
-        playAudio(levelUpSound);
-        
-        const bellotasActuales = bellotas + bellotasGanadas;
-        const totalClicksActuales = totalClicks; 
-        const totalGoldenLeavesActuales = totalGoldenLeavesClicked; 
-        const totalLeavesCollectedActuales = totalLeavesCollected; 
-        
-        const achMultipliers = achievementMultipliers;
-        const gLeafSpawn = goldenLeafSpawnTime;
-        const gLeafReward = goldenLeafRewardMultiplier;
-        const baseClick = baseClickValue;
-        const clickFrenzyMult = clickFrenzyMultiplier;
-        const gMultiplier = globalMultiplier;
-
-        leaves = 0;
-        totalLeavesPrestige = 0;
-        boostEndTime = 0;
-        currentWeatherEvent = null;
-        
-        upgrades.forEach(u => {
-            u.count = 0;
-            if (u.requirement) {
-                u.unlocked = false;
-            }
-        });
-
-        bellotas = bellotasActuales;
-        totalClicks = totalClicksActuales;
-        totalGoldenLeavesClicked = totalGoldenLeavesActuales;
-        totalLeavesCollected = totalLeavesCollectedActuales;
-        
-        achievementMultipliers = achMultipliers;
-        goldenLeafSpawnTime = gLeafSpawn;
-        goldenLeafRewardMultiplier = gLeafReward;
-        baseClickValue = baseClick;
-        clickFrenzyMultiplier = clickFrenzyMult;
-        globalMultiplier = gMultiplier;
-
-        const startRakes = prestigeUpgrades.find(p => p.id === 'perm_start_1')?.count || 0;
-        if (startRakes > 0) {
-            const rakeUpgrade = upgrades.find(u => u.id === 'rastrillo');
-            if (rakeUpgrade) rakeUpgrade.count = 5;
-        }
-        
-        recalculateHPS();
-        recalculateHPC();
-        updateUI();
-        renderStore();
-        renderPrestigePanel(); 
-        populateSceneryFromLoad(); 
-
-        saveGame();
-        location.reload();
     }
 
     // --- 7. INICIALIZACIÓN ---
@@ -1289,21 +1312,21 @@ function showNotification(title, message, icon = '🔔', duration = 2800) {
         setupBuyAmountToggle();
         setupTabs();
         prestigeResetButton.addEventListener('click', prestigeReset);
-        
+
         loadGame();
-        
+
         renderStore();
         updateUI();
 
-        setupFallingLeavesAnimation(); 
-        setupRain(); 
-        setupWind(); 
+        setupFallingLeavesAnimation();
+        setupRain();
+        setupWind();
 
         // Iniciar bucles principales
         setInterval(gameLoop, 1000);
         setInterval(saveGame, 10000);
         window.addEventListener('beforeunload', saveGame);
-        
+
         goldenLeafLoop();
         weatherEventLoop();
     }

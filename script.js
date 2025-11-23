@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sfxToggleBtn = document.getElementById('sfx-toggle');
     const buyAmountToggleBtn = document.getElementById('buy-amount-toggle');
 
+    // Configuración
+    const settingsToggleBtn = document.getElementById('settings-toggle');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeSettingsBtn = document.getElementById('close-settings');
+    const reduceMotionToggle = document.getElementById('reduce-motion-toggle');
+
     // Pestañas y Paneles
     const tabStore = document.getElementById('tab-store');
     const tabAchievements = document.getElementById('tab-achievements');
@@ -59,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isMusicEnabled = true;
     let isSfxEnabled = true;
+    let reduceMotion = false; // Nueva variable de estado
     const buyAmountModes = [1, 10, 'max'];
     let currentBuyModeIndex = 0;
 
@@ -70,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Estado de Prestigio
     let bellotas = 0;
     let totalLeavesPrestige = 0; // Hojas totales en esta run
-    const PRESTIGE_REQ = 1_000_000_000; // 1 Billón
+    const PRESTIGE_REQ = 100_000_000; // 100 Millones
 
     // Eventos de Clima
     let currentWeatherEvent = null;
@@ -120,7 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mapeo de Emojis
     const itemEmojis = {
         'cesto': '🧺', 'ardilla': '🐿️', 'arbol': '🌳', 'viento': '💨',
-        'guantes': '🧤', 'rastrillo': '🪒', 'soplador': '🌬️',
+        'compost': '💩', 'huerto': '🎃', 'cabana': '🏠', // Nuevos
+        'guantes': '🧤', 'escoba': '🧹', 'rastrillo': '🪒', 'soplador': '🌬️', // Escoba nueva
         'nidos': '🏡', 'rastrillo_titanio': '✨',
         'vientos_huracanados': '🌪️', 'guantes_dorados': '🧤✨', 'otono_eterno': '👑',
         'cesta_misteriosa': '🎁'
@@ -138,10 +146,16 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'cesto', name: 'Cesto de Hojas', pluralName: 'Cestos de Hojas', baseCost: 10, type: 'hps', value: 0.1, count: 0 },
         { id: 'ardilla', name: 'Ardilla Ayudante', pluralName: 'Ardillas Ayudantes', baseCost: 100, type: 'hps', value: 1, count: 0 },
         { id: 'arbol', name: 'Árbol Pequeño', pluralName: 'Árboles Pequeños', baseCost: 1100, type: 'hps', value: 8, count: 0 },
+        { id: 'compost', name: 'Compost Casero', pluralName: 'Composts Caseros', baseCost: 3500, type: 'hps', value: 20, count: 0 }, // Nuevo
         { id: 'viento', name: 'Viento de Otoño', pluralName: 'Vientos de Otoño', baseCost: 12000, type: 'hps', value: 47, count: 0 },
+        { id: 'huerto', name: 'Huerto de Calabazas', pluralName: 'Huertos de Calabazas', baseCost: 50000, type: 'hps', value: 150, count: 0 }, // Nuevo
+        { id: 'cabana', name: 'Cabaña del Bosque', pluralName: 'Cabañas del Bosque', baseCost: 250000, type: 'hps', value: 600, count: 0 }, // Nuevo
+
         { id: 'guantes', name: 'Guantes de Jardín', pluralName: 'Guantes de Jardín', baseCost: 50, type: 'click', value: 1, count: 0 },
+        { id: 'escoba', name: 'Escoba de Ramas', pluralName: 'Escobas de Ramas', baseCost: 2500, type: 'click', value: 12, count: 0 }, // Nuevo
         { id: 'rastrillo', name: 'Rastrillo', pluralName: 'Rastrillos', baseCost: 500, type: 'click', value: 5, count: 0 },
         { id: 'soplador', name: 'Soplador de Hojas', pluralName: 'Sopladores de Hojas', baseCost: 8000, type: 'click', value: 25, count: 0 },
+
         { id: 'nidos', name: 'Nidos Acogedores', pluralName: 'Nidos Acogedores', baseCost: 10000, type: 'multiplier', value: 2, target: 'ardilla', count: 0, unlocked: false, requirement: { id: 'ardilla', count: 25 } },
         { id: 'rastrillo_titanio', name: 'Rastrillo de Titanio', pluralName: 'Rastrillos de Titanio', baseCost: 50000, type: 'multiplier', value: 3, target: 'rastrillo', count: 0, unlocked: false, requirement: { id: 'rastrillo', count: 10 } },
         { id: 'vientos_huracanados', name: 'Vientos Huracanados', pluralName: 'Vientos Huracanados', baseCost: 50000000, type: 'multiplier', value: 3, target: 'viento', count: 0, unlocked: false, requirement: { id: 'viento', count: 25 } },
@@ -160,16 +174,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 3. FUNCIONES DE LÓGICA DEL JUEGO ---
 
-    // --- REEMPLAZA esta función ---
+    function formatNumber(num) {
+        if (num < 1000) return Math.floor(num).toString();
+        const suffixes = ["", "k", "M", "B", "T", "Qa", "Qi"];
+        const suffixNum = Math.floor(Math.log10(num) / 3);
+
+        let shortValue = parseFloat((suffixNum !== 0 ? (num / Math.pow(1000, suffixNum)) : num).toPrecision(3));
+        if (shortValue % 1 !== 0) {
+            shortValue = shortValue.toFixed(1);
+        }
+        return shortValue + suffixes[suffixNum];
+    }
+
     function getUpgradeCost(upgrade, n) {
-        // --- MODIFICADO: Coste de la Cesta Misteriosa ---
         if (upgrade.type === 'consumable') {
             // El coste ahora es 10 minutos de HPS + 10,000 base
-            // Esto evita que se pueda "spamear"
             return Math.floor(leavesPerSecond * 600) + 10000;
         }
 
-        // Lógica de coste normal (sin cambios)
         const baseCost = upgrade.baseCost;
         const count = upgrade.count;
         const rate = 1.15;
@@ -376,10 +398,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. FUNCIONES DE RENDERIZADO Y UI ---
 
     function updateUI() {
-        leafCountDisplay.textContent = Math.floor(leaves).toLocaleString('es');
-        hpsCountDisplay.textContent = leavesPerSecond.toFixed(1).toLocaleString('es');
-        hpcCountDisplay.textContent = Math.floor(leavesPerClick).toLocaleString('es');
-        bellotaCountDisplay.textContent = bellotas.toLocaleString('es');
+        leafCountDisplay.textContent = formatNumber(leaves);
+        hpsCountDisplay.textContent = formatNumber(leavesPerSecond);
+        hpcCountDisplay.textContent = formatNumber(leavesPerClick);
+        bellotaCountDisplay.textContent = formatNumber(bellotas);
     }
 
     function renderStore() {
@@ -451,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="upgrade-info">
                         <strong>${upgrade.name}</strong>
                         <div class="details">
-                            <span class="upgrade-cost">Coste: ${costToDisplay.toLocaleString('es')}</span> | 
+                            <span class="upgrade-cost">Coste: ${formatNumber(costToDisplay)}</span> | 
                             <span class="upgrade-stat">¡Prueba tu suerte!</span>
                         </div>
                     </div>
@@ -489,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="upgrade-info">
                     <strong>${upgrade.name}</strong>
                     <div class="details">
-                        <span class="upgrade-cost">${isDisabled ? 'Comprado' : 'Coste: ' + costToDisplay.toLocaleString('es')}</span> | 
+                        <span class="upgrade-cost">${isDisabled ? 'Comprado' : 'Coste: ' + formatNumber(costToDisplay)}</span> | 
                         <span class="upgrade-stat">${detailText}</span> | 
                         <span class="upgrade-count">Tienes: ${upgrade.count}</span>
                     </div>
@@ -530,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 costToDisplay = getUpgradeCost(upgrade, 1);
                 buyText = 'Comprar';
             }
-            costElement.textContent = `Coste: ${costToDisplay.toLocaleString('es')}`;
+            costElement.textContent = `Coste: ${formatNumber(costToDisplay)}`;
             buttonElement.textContent = buyText;
             buttonElement.dataset.cost = costToDisplay;
             buttonElement.disabled = leaves < costToDisplay;
@@ -549,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showFloatingNumber(amount, originElement) {
         const number = document.createElement('span');
-        number.textContent = `+${Math.floor(amount)}`;
+        number.textContent = `+${formatNumber(amount)}`;
         number.classList.add('floating-number');
         const rect = originElement.getBoundingClientRect();
         const clickerRect = clickerArea.getBoundingClientRect();
@@ -622,6 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
             upgrades: upgrades.map(u => ({ id: u.id, count: u.count, unlocked: u.unlocked })),
             isMusicEnabled: isMusicEnabled,
             isSfxEnabled: isSfxEnabled,
+            reduceMotion: reduceMotion, // Guardar preferencia
             lastSaveTime: Date.now(),
             globalMultiplier: globalMultiplier,
             boostEndTime: boostEndTime,
@@ -654,6 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             isMusicEnabled = loadedState.isMusicEnabled !== false;
             isSfxEnabled = loadedState.isSfxEnabled !== false;
+            reduceMotion = loadedState.reduceMotion || false; // Cargar preferencia
             globalMultiplier = loadedState.globalMultiplier || 1;
             boostEndTime = loadedState.boostEndTime || 0;
 
@@ -705,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     leaves += offlineLeaves;
                     totalLeavesCollected += offlineLeaves;
                     totalLeavesPrestige += offlineLeaves;
-                    showNotification(`¡Bienvenido de nuevo!`, `Ganaste ${offlineLeaves.toLocaleString('es')} hojas.`, '🍂');
+                    showNotification(`¡Bienvenido de nuevo!`, `Ganaste ${formatNumber(offlineLeaves)} hojas.`, '🍂');
                 }
             }
         }
@@ -786,6 +810,19 @@ document.addEventListener('DOMContentLoaded', () => {
         sfxToggleBtn.addEventListener('click', () => {
             isSfxEnabled = !isSfxEnabled;
             updateAudioButtonsUI();
+
+            // Pausar sonidos de clima si se desactivan los SFX
+            if (!isSfxEnabled) {
+                if (rainSound && !rainSound.paused) {
+                    rainSound.pause();
+                    rainSound.currentTime = 0;
+                }
+                if (windSound && !windSound.paused) {
+                    windSound.pause();
+                    windSound.currentTime = 0;
+                }
+            }
+
             saveGame();
         });
     }
@@ -806,6 +843,79 @@ document.addEventListener('DOMContentLoaded', () => {
             sfxToggleBtn.classList.add('off');
         }
     }
+    function setupTooltips() {
+        const tooltip = document.getElementById('tooltip');
+        if (!tooltip) return;
+
+        document.addEventListener('mouseover', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target) {
+                tooltip.textContent = target.getAttribute('data-tooltip');
+                tooltip.classList.add('visible');
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (tooltip.classList.contains('visible')) {
+                tooltip.style.left = `${e.clientX + 15}px`;
+                tooltip.style.top = `${e.clientY + 15}px`;
+            }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target) {
+                tooltip.classList.remove('visible');
+            }
+        });
+    }
+
+    function initSettings() {
+        // Aplicar estado inicial
+        if (reduceMotion) {
+            document.body.classList.add('reduce-motion');
+            reduceMotionToggle.checked = true;
+        } else {
+            document.body.classList.remove('reduce-motion');
+            reduceMotionToggle.checked = false;
+        }
+
+        // Event Listeners
+        if (settingsToggleBtn) {
+            settingsToggleBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('hidden');
+                settingsModal.setAttribute('aria-hidden', 'false');
+            });
+        }
+
+        if (closeSettingsBtn) {
+            closeSettingsBtn.addEventListener('click', () => {
+                settingsModal.classList.add('hidden');
+                settingsModal.setAttribute('aria-hidden', 'true');
+            });
+        }
+
+        if (reduceMotionToggle) {
+            reduceMotionToggle.addEventListener('change', (e) => {
+                reduceMotion = e.target.checked;
+                if (reduceMotion) {
+                    document.body.classList.add('reduce-motion');
+                } else {
+                    document.body.classList.remove('reduce-motion');
+                }
+                saveGame();
+            });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.add('hidden');
+                settingsModal.setAttribute('aria-hidden', 'true');
+            }
+        });
+    }
+
     function setupFallingLeavesAnimation() {
         const container = document.getElementById('falling-leaves-container');
         if (!container) return;
@@ -960,7 +1070,7 @@ document.addEventListener('DOMContentLoaded', () => {
             leaves += reward;
             totalLeavesCollected += reward;
             totalLeavesPrestige += reward;
-            showNotification('¡Hoja Dorada!', `+${reward.toLocaleString('es')} hojas`, '✨');
+            showNotification('¡Hoja Dorada!', `+${formatNumber(reward)} hojas`, '✨');
             showFloatingNumber(reward, event.target);
         } else {
             boostEndTime = Date.now() + 15000;
@@ -998,12 +1108,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (roll < 0.75) { // 25% - Hojas (1 min de HPS)
             const reward = Math.floor(leavesPerSecond * 60 * goldenLeafRewardMultiplier);
             leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
-            showNotification("¡Algo es algo!", `¡La cesta contenía ${reward.toLocaleString('es')} hojas!`, '💰');
+            showNotification("¡Algo es algo!", `¡La cesta contenía ${formatNumber(reward)} hojas!`, '💰');
 
         } else if (roll < 0.90) { // 15% - Hojas (20 mins de HPS)
             const reward = Math.floor(leavesPerSecond * 1200 * goldenLeafRewardMultiplier);
             leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
-            showNotification("¡Premio!", `¡La cesta contenía ${reward.toLocaleString('es')} hojas!`, '💰');
+            showNotification("¡Premio!", `¡La cesta contenía ${formatNumber(reward)} hojas!`, '💰');
 
         } else if (roll < 0.95) { // 5% - Frenesí (15s)
             boostEndTime = Date.now() + 15000; // 15 segundos
@@ -1083,8 +1193,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updatePrestigePanel() {
         if (!prestigePanel.classList.contains('hidden')) {
             const bellotasToGain = calculateBellotasToGain();
-            prestigeTotalLeavesDisplay.textContent = Math.floor(totalLeavesPrestige).toLocaleString('es');
-            prestigeGainDisplay.textContent = `${bellotasToGain.toLocaleString('es')} 🌰`;
+            prestigeTotalLeavesDisplay.textContent = formatNumber(totalLeavesPrestige);
+            prestigeGainDisplay.textContent = `${formatNumber(bellotasToGain)} 🌰`;
 
             if (totalLeavesPrestige >= PRESTIGE_REQ) {
                 prestigeResetButton.disabled = false;
@@ -1314,6 +1424,8 @@ document.addEventListener('DOMContentLoaded', () => {
         prestigeResetButton.addEventListener('click', prestigeReset);
 
         loadGame();
+        initSettings(); // Inicializar configuración
+        setupTooltips(); // Inicializar tooltips
 
         renderStore();
         updateUI();

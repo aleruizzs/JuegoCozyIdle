@@ -1,41 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cozy Clicker de Otoño</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css"> 
-    <script src="script.js" defer></script> 
+
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
+
 <body>
 
     <div class="game-container">
-        
+
         <div id="weather-event-bar" class="hidden"></div>
-        
+
         <div class="clicker-section">
-            
+
             <div id="weather-effects-container">
                 <div id="rain-container" class="weather-effect hidden"></div>
                 <div id="sun-overlay" class="weather-effect hidden"></div>
                 <div id="wind-container" class="weather-effect hidden"></div>
             </div>
-            
+
             <div id="falling-leaves-container"></div>
             <div class="clicker-content">
                 <h1>Refugio de Otoño</h1>
                 <div class="stats-container">
                     <div id="leaf-count" class="stat-display">0</div>
                     <div class="stat-label">hojas recogidas</div>
-                    
+
                     <div id="bellota-count" class="stat-display bellota">0</div>
                     <div class="stat-label bellota">bellotas</div>
-                    
+
                     <div id="hps-count" class="stat-display">0.0</div>
                     <div class="stat-label">hojas por segundo</div>
                     <div id="hpc-count" class="stat-display hpc">1</div>
@@ -44,7 +46,8 @@
             </div>
 
             <div class="clicker-area">
-                <button id="clicker-button" class="clicker-button">🍂</button>
+                <button id="clicker-button" class="clicker-button"
+                    data-tooltip="¡Haz clic para recoger hojas!">🍂</button>
                 <div id="boost-timer" class="hidden"></div>
             </div>
 
@@ -71,16 +74,17 @@
         </div>
 
         <div class="store-section">
-            
+
             <div class="store-tabs">
                 <button id="tab-store" class="tab-button active">Mejoras</button>
                 <button id="tab-achievements" class="tab-button">Logros</button>
                 <button id="tab-prestige" class="tab-button">Prestigio</button>
             </div>
-            
+
             <div id="store-panel" class="tab-panel active">
                 <div class="store-controls">
-                    <button id="buy-amount-toggle" data-amount="1">Comprar: 1</button>
+                    <button id="buy-amount-toggle" data-amount="1" data-tooltip="Cambiar cantidad de compra">Comprar:
+                        1</button>
                 </div>
                 <div id="store-container"></div>
             </div>
@@ -88,30 +92,51 @@
             <div id="achievements-panel" class="tab-panel hidden">
                 <div id="achievements-container"></div>
             </div>
-            
+
             <div id="prestige-panel" class="tab-panel hidden">
                 <div class="prestige-info">
                     <h3>Prestigio</h3>
                     <p>Reinicia tu progreso (hojas y mejoras) para ganar <strong>Bellotas Doradas</strong> (🌰).</p>
-                    <p>Cada Bellota Dorada te da un <strong>+1%</strong> de bonus permanente a toda la producción (acumulativo).</p>
-                    <p>Necesitas <strong>1 Billón</strong> de hojas (total en esta partida) para reiniciar.</p>
+                    <p>Cada Bellota Dorada te da un <strong>+1%</strong> de bonus permanente a toda la producción
+                        (acumulativo).</p>
+                    <p>Necesitas <strong>100 Millones</strong> de hojas (total en esta partida) para reiniciar.</p>
                     <hr>
                     <p>Hojas totales (esta partida): <strong id="prestige-leaves-total">0</strong></p>
                     <p>Ganarás al reiniciar: <strong id="prestige-gain" class="bellota">0 🌰</strong></p>
                 </div>
-                <button id="prestige-reset-button" disabled>Reiniciar por Prestigio</button>
+                <button id="prestige-reset-button" disabled data-tooltip="Reiniciar juego y ganar prestigio">Reiniciar
+                    por Prestigio</button>
                 <div id="prestige-upgrade-container">
-                    </div>
+                </div>
             </div>
-            
+
             <div class="audio-controls">
-                <button id="music-toggle" class="audio-btn">Música: 🎵</button>
-                <button id="sfx-toggle" class="audio-btn">Sonidos: 🔊</button>
+                <button id="music-toggle" class="audio-btn" data-tooltip="Activar/Desactivar Música">Música: 🎵</button>
+                <button id="sfx-toggle" class="audio-btn" data-tooltip="Activar/Desactivar Sonidos">Sonidos: 🔊</button>
+                <button id="settings-toggle" class="audio-btn" aria-label="Abrir configuración"
+                    data-tooltip="Configuración">⚙️</button>
             </div>
         </div>
     </div>
 
     <div id="notification-container"></div>
+
+    <div id="settings-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="settings-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="settings-title">Configuración</h2>
+                <button id="close-settings" class="close-button" aria-label="Cerrar configuración">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="reduce-motion-toggle">Reducir Movimiento</label>
+                    <input type="checkbox" id="reduce-motion-toggle">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip"></div>
 
     <audio id="music-lofi" src="audio/lofi-music.mp3" loop preload="auto"></audio>
     <audio id="sound-click" src="audio/click-sound.wav" preload="auto"></audio>
@@ -123,5 +148,6 @@
     <audio id="sound-notification" src="audio/notification.mp3" preload="auto"></audio>
     <audio id="sound-level-up" src="audio/level-up.mp3" preload="auto"></audio>
     <audio id="sound-golden-leaf" src="audio/golden-leaf.mp3" preload="auto"></audio>
-    </body>
+</body>
+
 </html>

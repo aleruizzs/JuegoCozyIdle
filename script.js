@@ -803,8 +803,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const backgroundUnlockables = [
         { id: 'rug', threshold: 50, content: '🧶', className: 'bg-rug', name: 'Alfombra Acogedora' },
-        { id: 'window', threshold: 200, content: '🪟', className: 'bg-window', name: 'Ventana al Bosque' },
-        { id: 'plant', threshold: 500, content: '🪴', className: 'bg-plant', name: 'Planta de Interior' },
+        { id: 'window', threshold: 200, content: '🧣', className: 'bg-window', name: 'Ventana al Bosque' },
+        { id: 'plant', threshold: 500, content: '🎍', className: 'bg-plant', name: 'Planta de Interior' },
         { id: 'books', threshold: 1500, content: '📚', className: 'bg-books', name: 'Pequeña Biblioteca' },
         { id: 'lamp', threshold: 5000, content: '🏮', className: 'bg-lamp', name: 'Lámpara Cálida' },
         { id: 'cat', threshold: 10000, content: '🐈', className: 'bg-cat', name: 'Gato Dormilón' },

@@ -1273,18 +1273,17 @@ body.reduce-motion .raindrop,
 
 /* 1. Alfombra (Base) */
 .bg-rug {
-    bottom: 20px;
-    left: 50%;
+    bottom: 18%;
+    left: 15%;
     transform: translateX(-50%) scale(0.9);
-    font-size: 8rem;
     opacity: 0;
     z-index: 1;
-    filter: opacity(0.6);
+    font-size: 6rem;
     /* Más sutil */
 }
 
 .bg-rug.visible {
-    opacity: 0.6;
+    opacity: 1;
     transform: translateX(-50%) scale(1);
 }
 
@@ -1337,10 +1336,10 @@ body.reduce-motion .raindrop,
 
 /* 6. Gato (Compañía) */
 .bg-cat {
-    bottom: 40px;
-    left: 45%;
+    bottom: 20%;
+    left: 20%;
     /* Cerca de la alfombra */
-    font-size: 3rem;
+    font-size: 5rem;
     z-index: 3;
 }
 

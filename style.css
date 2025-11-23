@@ -1044,7 +1044,6 @@ h3 {
 #sun-overlay {
     transition: opacity 1.5s ease-in-out;
     /* Añadimos esto para que el pseudo-elemento funcione bien */
-    position: relative;
     width: 100%;
     height: 100%;
 }

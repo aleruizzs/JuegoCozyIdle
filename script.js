@@ -1180,11 +1180,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }, time);
     }
 
-    // *** MODIFICADO: Añadido control de audio de clima ***
-    function startWeatherEvent() {
+    // *** MODIFICADO: Añadido control de audio de clima y parámetro opcional ***
+    function startWeatherEvent(forcedType = null) {
+        // Si ya hay un evento, lo terminamos forzosamente para iniciar el nuevo (útil para debug)
+        if (currentWeatherEvent && forcedType) {
+            endWeatherEvent();
+            // Pequeño delay para permitir que se limpie
+            setTimeout(() => startWeatherEvent(forcedType), 100);
+            return;
+        }
         if (currentWeatherEvent) return;
 
-        const event = weatherEvents[Math.floor(Math.random() * weatherEvents.length)];
+        let event;
+        if (forcedType) {
+            event = weatherEvents.find(e => e.id === forcedType);
+        }
+
+        // Si no se forzó o no se encontró, elegir aleatorio
+        if (!event) {
+            event = weatherEvents[Math.floor(Math.random() * weatherEvents.length)];
+        }
+
         currentWeatherEvent = event;
         eventEndTime = Date.now() + (event.duration * 1000);
 
@@ -1484,6 +1500,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         goldenLeafLoop();
         weatherEventLoop();
+
+        // DEBUG: Exponer función para forzar clima
+        window.forceWeather = (type) => startWeatherEvent(type);
+        console.log("🍂 DEBUG: Usa forceWeather('sun'), forceWeather('rain') o forceWeather('wind') en la consola.");
     }
 
     init();

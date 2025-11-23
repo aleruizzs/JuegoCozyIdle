@@ -385,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         checkAchievements();
         updateBoostTimer();
         updatePrestigePanel();
+        checkBackgroundUnlocks();
 
         if (currentWeatherEvent && Date.now() > eventEndTime) {
             endWeatherEvent();
@@ -743,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         checkUnlockConditions();
         checkAchievements();
+        checkBackgroundUnlocks();
     }
 
     // --- 6. FUNCIONES DE AUDIO, FONDO Y NUEVAS CARACTERÍSTICAS ---
@@ -795,6 +797,47 @@ document.addEventListener('DOMContentLoaded', () => {
         // El 'setTimeout' que había aquí era redundante y se ha eliminado.
     }
 
+
+    // --- 7. VISUAL PROGRESSION (BACKGROUND) ---
+    const backgroundDecorationsContainer = document.getElementById('background-decorations');
+
+    const backgroundUnlockables = [
+        { id: 'rug', threshold: 50, content: '🧶', className: 'bg-rug', name: 'Alfombra Acogedora' },
+        { id: 'window', threshold: 200, content: '🪟', className: 'bg-window', name: 'Ventana al Bosque' },
+        { id: 'plant', threshold: 500, content: '🪴', className: 'bg-plant', name: 'Planta de Interior' },
+        { id: 'books', threshold: 1500, content: '📚', className: 'bg-books', name: 'Pequeña Biblioteca' },
+        { id: 'lamp', threshold: 5000, content: '🏮', className: 'bg-lamp', name: 'Lámpara Cálida' },
+        { id: 'cat', threshold: 10000, content: '🐈', className: 'bg-cat', name: 'Gato Dormilón' },
+        { id: 'tea', threshold: 25000, content: '🍵', className: 'bg-tea', name: 'Té Caliente' },
+        { id: 'art', threshold: 50000, content: '🖼️', className: 'bg-art', name: 'Cuadro de Otoño' },
+        { id: 'garland', threshold: 100000, content: '', className: 'bg-garland', name: 'Luces Festivas' },
+        { id: 'fire', threshold: 250000, content: '🔥', className: 'bg-fire', name: 'Fuego de Hogar' }
+    ];
+
+    let unlockedBackgroundItems = [];
+
+    function checkBackgroundUnlocks() {
+        backgroundUnlockables.forEach(item => {
+            if (totalLeavesCollected >= item.threshold && !unlockedBackgroundItems.includes(item.id)) {
+                unlockBackgroundItem(item);
+            }
+        });
+    }
+
+    function unlockBackgroundItem(item) {
+        unlockedBackgroundItems.push(item.id);
+
+        const el = document.createElement('div');
+        el.className = `bg-item ${item.className}`;
+        if (item.content) el.textContent = item.content;
+
+        backgroundDecorationsContainer.appendChild(el);
+
+        // Trigger reflow for transition
+        requestAnimationFrame(() => {
+            el.classList.add('visible');
+        });
+    }
 
     function setupAudioControls() {
         musicToggleBtn.addEventListener('click', () => {

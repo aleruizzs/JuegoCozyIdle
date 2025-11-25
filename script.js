@@ -238,6 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function calculateMaxBuy(upgrade) {
         if (upgrade.type === 'consumable') return 1;
+        if (upgrade.type === 'multiplier') {
+            return leaves >= upgrade.baseCost ? 1 : 0;
+        }
 
         const baseCost = upgrade.baseCost;
         const count = upgrade.count;
@@ -277,6 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             amountToBuy = buyAmount;
+            if (upgrade.type === 'multiplier') {
+                amountToBuy = 1;
+            }
             totalCost = getUpgradeCost(upgrade, amountToBuy);
         }
 
@@ -1168,8 +1174,8 @@ document.addEventListener('DOMContentLoaded', () => {
         totalGoldenLeavesClicked++;
 
         if (Math.random() < 0.7) {
-            const hpsReward = Math.floor(leavesPerSecond * 300 * goldenLeafRewardMultiplier);
-            const clickReward = Math.floor(leavesPerClick * 100 * goldenLeafRewardMultiplier);
+            const hpsReward = Math.floor(leavesPerSecond * 180 * goldenLeafRewardMultiplier);
+            const clickReward = Math.floor(leavesPerClick * 180 * goldenLeafRewardMultiplier);
             const minReward = 25;
             const reward = Math.max(hpsReward, clickReward, minReward);
 
@@ -1567,6 +1573,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // DEBUG: Exponer función para forzar clima
         window.forceWeather = (type) => startWeatherEvent(type);
         console.log("🍂 DEBUG: Usa forceWeather('sun'), forceWeather('rain') o forceWeather('wind') en la consola.");
+        // DEBUG: Exponer función para forzar clima
+        window.forceWeather = (type) => startWeatherEvent(type);
+        console.log("🍂 DEBUG: Usa forceWeather('sun'), forceWeather('rain') o forceWeather('wind') en la consola.");
+
+        // *** CÓDIGO AÑADIDO PARA DEBUG DE HOJAS ***
+        // Creamos una función global que manipula la variable local 'leaves'
+        window.setLeaves = (amount) => {
+            leaves = amount;
+            // Llamamos a la función de renderizado local que ahora es global
+            updateUI();
+            renderStore(); // Opcional, pero útil para actualizar botones de compra
+        };
+
+        // Hacemos la función updateUI accesible globalmente, si la necesitas directamente.
+        window.updateUI = updateUI;
+
+        console.log("💸 DEBUG: Usa setLeaves(100000000) para darte hojas.");
+        // *** FIN CÓDIGO AÑADIDO ***
     }
 
     init();

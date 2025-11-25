@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-
+    // --- FUNCIÓN AYUDANTE PARA ICONOS ---
+    // Genera el HTML de la imagen automáticamente
+    function getIcon(filename, extraClass = '') {
+        // Asegúrate de que las imágenes estén en la carpeta 'img/'
+        return `<img src="img/${filename}.png" class="pixel-icon ${extraClass}" alt="icon">`;
+    }
     // --- 1. REFERENCIAS A ELEMENTOS DEL DOM ---
     const leafCountDisplay = document.getElementById('leaf-count');
     const hpsCountDisplay = document.getElementById('hps-count');
@@ -83,9 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentWeatherEvent = null;
     let eventEndTime = 0;
     const weatherEvents = [
-        { id: 'rain', name: '🌧️ Lluvia Ligera', duration: 60, target: 'hps', multiplier: 1.5, text: '¡La lluvia aumenta el HPS x1.5!' },
-        { id: 'wind', name: '💨 Racha de Viento', duration: 20, target: 'click', multiplier: 3, text: '¡El viento triplica el valor de tus Clics!' },
-        { id: 'sun', name: '☀️ Día Soleado', duration: 80, target: 'all', multiplier: 2, text: '¡Día perfecto! ¡Toda la producción x2!' }
+        { id: 'rain', name: getIcon('lluvia') + ' Lluvia Ligera', duration: 60, target: 'hps', multiplier: 1.5, text: '¡La lluvia aumenta el HPS x1.5!' },
+        { id: 'wind', name: getIcon('viento') + ' Racha de Viento', duration: 20, target: 'click', multiplier: 3, text: '¡El viento triplica el valor de tus Clics!' },
+        { id: 'sun', name: getIcon('sol') + ' Día Soleado', duration: 80, target: 'all', multiplier: 2, text: '¡Día perfecto! ¡Toda la producción x2!' }
     ];
 
     // Contadores Globales
@@ -109,29 +114,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Definición de Logros
     const achievements = {
-        'leaf_10k': { name: 'Bolsillo Lleno', desc: 'Recoge un total de 10,000 hojas.', icon: '💰', unlocked: false, condition: () => totalLeavesCollected >= 10000, reward: { text: '+1% HPS/HPC global', effect: () => globalMultiplier *= 1.01 } },
-        'leaf_1M': { name: 'Millonario de Hojas', desc: 'Recoge un total de 1,000,000 hojas.', icon: '🤑', unlocked: false, condition: () => totalLeavesCollected >= 1000000, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 } },
-        'leaf_1B': { name: 'Magnate de Hojas', desc: 'Recoge un total de 1 Billón de hojas.', icon: '👑', unlocked: false, condition: () => totalLeavesCollected >= 1000000000, reward: { text: '+10% HPS/HPC global', effect: () => globalMultiplier *= 1.10 } },
-        'click_100': { name: 'Dedo Ágil', desc: 'Haz clic 100 veces.', icon: '👆', unlocked: false, condition: () => totalClicks >= 100, reward: { text: '+1 al valor base de Clic', effect: () => baseClickValue++ } },
-        'click_1000': { name: 'Dedo Dorado', desc: 'Haz clic 1,000 veces.', icon: '👉', unlocked: false, condition: () => totalClicks >= 1000, reward: { text: '+10 al valor base de Clic', effect: () => baseClickValue += 10 } },
-        'click_100k': { name: 'Cliclista Olímpico', desc: 'Haz clic 100,000 veces.', icon: '🥇', unlocked: false, condition: () => totalClicks >= 100000, reward: { text: '+100 al valor base de Clic', effect: () => baseClickValue += 100 } },
-        'hps_100': { name: 'Piloto Automático', desc: 'Alcanza 100 HPS.', icon: '⏱️', unlocked: false, condition: () => leavesPerSecond >= 100, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 } },
-        'hps_1k': { name: 'Velocidad de Escape', desc: 'Alcanza 1,000 HPS.', icon: '🚀', unlocked: false, condition: () => leavesPerSecond >= 1000, reward: { text: 'El Frenesí de Clics ahora es x10', effect: () => clickFrenzyMultiplier = 10 } },
-        'cesto_50': { name: 'Maestro de Cestos', desc: 'Compra 50 Cestos.', icon: '🧺', unlocked: false, condition: () => (upgrades.find(u => u.id === 'cesto')?.count || 0) >= 50, reward: { text: 'Los Cestos x2', effect: () => achievementMultipliers.cesto *= 2 } },
-        'ardilla_50': { name: 'Líder de la Manada', desc: 'Compra 50 Ardillas.', icon: '🐿️', unlocked: false, condition: () => (upgrades.find(u => u.id === 'ardilla')?.count || 0) >= 50, reward: { text: 'Las Ardillas x2', effect: () => achievementMultipliers.ardilla *= 2 } },
-        'arbol_50': { name: 'Bosque Creciente', desc: 'Compra 50 Árboles.', icon: '🌳', unlocked: false, condition: () => (upgrades.find(u => u.id === 'arbol')?.count || 0) >= 50, reward: { text: 'Los Árboles x2', effect: () => achievementMultipliers.arbol *= 2 } },
-        'golden_1': { name: '¡Qué Suerte!', desc: 'Haz clic en 1 Hoja Dorada.', icon: '✨', unlocked: false, condition: () => totalGoldenLeavesClicked >= 1, reward: { text: 'Hojas Doradas 10% más rápido', effect: () => goldenLeafSpawnTime *= 0.9 } },
-        'golden_10': { name: 'Cazador de Oro', desc: 'Haz clic en 10 Hojas Doradas.', icon: '🌟', unlocked: false, condition: () => totalGoldenLeavesClicked >= 10, reward: { text: 'Recompensas de Hojas Doradas x2', effect: () => goldenLeafRewardMultiplier *= 2 } },
+        'leaf_10k': { name: 'Bolsillo Lleno', desc: 'Recoge un total de 10,000 hojas.', icon: getIcon('bolsa_dinero'), unlocked: false, condition: () => totalLeavesCollected >= 10000, reward: { text: '+1% HPS/HPC global', effect: () => globalMultiplier *= 1.01 } },
+        'leaf_1M': { name: 'Millonario de Hojas', desc: 'Recoge un total de 1,000,000 hojas.', icon: getIcon('bolsas-dinero'), unlocked: false, condition: () => totalLeavesCollected >= 1000000, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 } },
+        'leaf_1B': { name: 'Magnate de Hojas', desc: 'Recoge un total de 1 Billón de hojas.', icon: getIcon('bolsas-dinero-2'), unlocked: false, condition: () => totalLeavesCollected >= 1000000000, reward: { text: '+10% HPS/HPC global', effect: () => globalMultiplier *= 1.10 } },
+        'click_100': { name: 'Dedo Ágil', desc: 'Haz clic 100 veces.', icon: getIcon('cursor'), unlocked: false, condition: () => totalClicks >= 100, reward: { text: '+1 al valor base de Clic', effect: () => baseClickValue++ } },
+        'click_1000': { name: 'Dedo Dorado', desc: 'Haz clic 1,000 veces.', icon: getIcon('cursor-gold'), unlocked: false, condition: () => totalClicks >= 1000, reward: { text: '+10 al valor base de Clic', effect: () => baseClickValue += 10 } },
+        'click_100k': { name: 'Cliclista Olímpico', desc: 'Haz clic 100,000 veces.', icon: getIcon('medalla'), unlocked: false, condition: () => totalClicks >= 100000, reward: { text: '+100 al valor base de Clic', effect: () => baseClickValue += 100 } },
+        'hps_100': { name: 'Piloto Automático', desc: 'Alcanza 100 HPS.', icon: getIcon('timer'), unlocked: false, condition: () => leavesPerSecond >= 100, reward: { text: '+2% HPS/HPC global', effect: () => globalMultiplier *= 1.02 } },
+        'hps_1k': { name: 'Velocidad de Escape', desc: 'Alcanza 1,000 HPS.', icon: getIcon('cohete'), unlocked: false, condition: () => leavesPerSecond >= 1000, reward: { text: 'El Frenesí de Clics ahora es x10', effect: () => clickFrenzyMultiplier = 10 } },
+        'cesto_50': { name: 'Maestro de Cestos', desc: 'Compra 50 Cestos.', icon: getIcon('cestos'), unlocked: false, condition: () => (upgrades.find(u => u.id === 'cesto')?.count || 0) >= 50, reward: { text: 'Los Cestos x2', effect: () => achievementMultipliers.cesto *= 2 } },
+        'ardilla_50': { name: 'Líder de la Manada', desc: 'Compra 50 Ardillas.', icon: getIcon('manada'), unlocked: false, condition: () => (upgrades.find(u => u.id === 'ardilla')?.count || 0) >= 50, reward: { text: 'Las Ardillas x2', effect: () => achievementMultipliers.ardilla *= 2 } },
+        'arbol_50': { name: 'Bosque Creciente', desc: 'Compra 50 Árboles.', icon: getIcon('bosque'), unlocked: false, condition: () => (upgrades.find(u => u.id === 'arbol')?.count || 0) >= 50, reward: { text: 'Los Árboles x2', effect: () => achievementMultipliers.arbol *= 2 } },
+        // Usamos la etiqueta IMG con las clases que acabamos de definir
+        'golden_1': {
+            name: '¡Qué Suerte!',
+            desc: 'Haz clic en 1 Hoja Dorada.',
+            icon: getIcon('leaf', 'golden-filter'),
+            unlocked: false,
+            condition: () => totalGoldenLeavesClicked >= 1,
+            reward: { text: 'Hojas Doradas 10% más rápido', effect: () => goldenLeafSpawnTime *= 0.9 }
+        },
+        'golden_10': {
+            name: 'Cazador de Oro',
+            desc: 'Haz clic en 10 Hojas Doradas.',
+            icon: getIcon('golden-leaf-pile'),
+            unlocked: false,
+            condition: () => totalGoldenLeavesClicked >= 10,
+            reward: { text: 'Recompensas de Hojas Doradas x2', effect: () => goldenLeafRewardMultiplier *= 2 }
+        },
     };
 
     // Mapeo de Emojis
+    // Mapeo de IDs a Imágenes Pixel Art
     const itemEmojis = {
-        'cesto': '🧺', 'ardilla': '🐿️', 'arbol': '🌳', 'viento': '💨',
-        'compost': '💩', 'huerto': '🎃', 'cabana': '🏠', // Nuevos
-        'guantes': '🧤', 'escoba': '🧹', 'rastrillo': '🪒', 'soplador': '🌬️', // Escoba nueva
-        'nidos': '🏡', 'rastrillo_titanio': '✨',
-        'vientos_huracanados': '🌪️', 'guantes_dorados': '🧤✨', 'otono_eterno': '👑',
-        'cesta_misteriosa': '🎁'
+        'cesto': getIcon('cesto'),
+        'ardilla': getIcon('ardilla'),
+        'arbol': getIcon('arbol'),
+        'viento': getIcon('viento'),
+        'compost': getIcon('compost'),
+        'huerto': getIcon('huerto'),
+        'cabana': getIcon('cabana'),
+
+        'guantes': getIcon('guantes'),
+        'escoba': getIcon('escoba'),
+        'rastrillo': getIcon('rastrillo'),
+        'soplador': getIcon('soplador'),
+
+        'nidos': getIcon('nido'),
+        'rastrillo_titanio': getIcon('rastrillo_titanio'),
+        'vientos_huracanados': getIcon('huracan'),
+        'guantes_dorados': getIcon('guantes-dorados'),
+        'otono_eterno': getIcon('otono_eterno'),
+        'cesta_misteriosa': getIcon('cofre')
     };
 
     // Slots de Escenario
@@ -410,11 +444,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const buyAmount = buyAmountModes[currentBuyModeIndex];
         const typeOrder = { 'hps': 1, 'click': 2, 'multiplier': 3, 'consumable': 4 };
         let currentType = null;
+
+        // MODIFICADO: Títulos definidos con iconos de imagen
+        // Usamos getIcon para inyectar el HTML de la imagen correspondiente
         const cozyTitles = {
-            'hps': '🍂 Producción Pasiva',
-            'click': '👆 Mejoras de Clic',
-            'multiplier': '✨ Multiplicadores Raros',
-            'consumable': '🎁 Objetos Especiales'
+            'hps': `${getIcon('leaf')} Producción Pasiva`,
+            'click': `${getIcon('cursor')} Mejoras de Clic`,
+            'multiplier': `${getIcon('multiplicador-raro')} Multiplicadores Raros`,
+            'consumable': `${getIcon('objeto-especial')} Objetos Especiales`
         };
 
         const sortedUpgrades = [...upgrades].sort((a, b) => {
@@ -429,29 +466,34 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedUpgrades.forEach(upgrade => {
             const originalIndex = upgrades.findIndex(u => u.id === upgrade.id);
 
+            // --- RENDERIZADO DE CABECERAS (HEADERS) ---
             if (upgrade.unlocked === false) {
                 if (currentType !== 'locked') {
                     currentType = 'locked';
                     const header = document.createElement('h3');
                     header.className = 'store-header locked';
-                    header.textContent = '🔒 Mejoras Bloqueadas';
+                    // MODIFICADO: Usamos innerHTML y el icono del candado
+                    header.innerHTML = `${getIcon('candado')} Mejoras Bloqueadas`;
                     storeContainer.appendChild(header);
                 }
             } else if (upgrade.type !== currentType) {
                 currentType = upgrade.type;
                 const header = document.createElement('h3');
                 header.className = 'store-header';
-                header.textContent = cozyTitles[currentType] || 'Varios';
+                // MODIFICADO: Usamos innerHTML para renderizar los iconos de cozyTitles
+                header.innerHTML = cozyTitles[currentType] || 'Varios';
                 storeContainer.appendChild(header);
             }
 
+            // --- RENDERIZADO DE ÍTEMS BLOQUEADOS ---
             if (upgrade.unlocked === false) {
                 const reqUpgrade = upgrades.find(u => u.id === upgrade.requirement.id);
                 const reqName = reqUpgrade ? reqUpgrade.pluralName : (upgrade.requirement.id + 's');
                 const item = document.createElement('div');
                 item.className = 'upgrade-item locked';
+                // MODIFICADO: Icono de candado con imagen
                 item.innerHTML = `
-                    <span class="upgrade-icon">🔒</span>
+                    <span class="upgrade-icon">${getIcon('candado')}</span>
                     <div class="upgrade-info">
                         <strong>${upgrade.name}</strong>
                         <div class="details">
@@ -464,11 +506,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // --- RENDERIZADO DE CONSUMIBLES (CESTA MISTERIOSA) ---
             if (upgrade.type === 'consumable') {
                 const costToDisplay = getUpgradeCost(upgrade, 1);
                 const item = document.createElement('div');
                 item.className = 'upgrade-item';
                 item.dataset.type = upgrade.type;
+
+                // Nota: itemEmojis[upgrade.id] ya contiene la etiqueta <img> gracias a la función getIcon
                 item.innerHTML = `
                     <span class="upgrade-icon">${itemEmojis[upgrade.id] || ''}</span>
                     <div class="upgrade-info">
@@ -485,6 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // --- RENDERIZADO DE ÍTEMS ESTÁNDAR ---
             let amountToDisplay = 0;
             let costToDisplay = 0;
             let buyText = 'Comprar';
@@ -582,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
         number.addEventListener('animationend', () => number.remove());
     }
 
-    function showNotification(title, message, icon = '🔔', duration = 2800) {
+    function showNotification(title, message, icon = getIcon('campana'), duration = 2800) {
         notificationQueue.push({ title, message, icon, duration });
         if (!isNotificationShowing) {
             processNotificationQueue();
@@ -730,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     leaves += offlineLeaves;
                     totalLeavesCollected += offlineLeaves;
                     totalLeavesPrestige += offlineLeaves;
-                    showNotification(`¡Bienvenido de nuevo!`, `Ganaste ${formatNumber(offlineLeaves)} hojas.`, '🍂');
+                    showNotification(`¡Bienvenido de nuevo!`, `Ganaste ${formatNumber(offlineLeaves)} hojas.`, '<img src="img/leaf.png" class="leaf-img-icon">');
                 }
             }
         }
@@ -764,9 +810,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotElement = document.getElementById(slotId);
 
         if (slotElement && !slotElement.classList.contains('occupied')) {
-            slotElement.textContent = itemEmojis[upgradeId];
+            slotElement.innerHTML = itemEmojis[upgradeId]; // <--- CAMBIAR A innerHTML
             slotElement.style.setProperty('--i', itemIndex);
-
             slotElement.classList.add('occupied');
         }
     }
@@ -872,17 +917,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateAudioButtonsUI() {
         if (isMusicEnabled) {
-            musicToggleBtn.textContent = 'Música: 🎵';
+            musicToggleBtn.innerHTML = getIcon('musicactive');
             musicToggleBtn.classList.remove('off');
         } else {
-            musicToggleBtn.textContent = 'Música: 🔇';
+            musicToggleBtn.innerHTML = getIcon('musicmuted');
             musicToggleBtn.classList.add('off');
         }
         if (isSfxEnabled) {
-            sfxToggleBtn.textContent = 'Sonidos: 🔊';
+            sfxToggleBtn.innerHTML = getIcon('sonidosactive');
             sfxToggleBtn.classList.remove('off');
         } else {
-            sfxToggleBtn.textContent = 'Sonidos: 🔇';
+            sfxToggleBtn.innerHTML = getIcon('sonidosmuted');
             sfxToggleBtn.classList.add('off');
         }
     }
@@ -964,19 +1009,37 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
 
         const numberOfLeaves = 35;
+
+        // Rango de tamaño deseado (en píxeles)
+        const minSize = 25;
+        const maxSize = 50;
+
         for (let i = 0; i < numberOfLeaves; i++) {
-            const leaf = document.createElement('span');
+            // Usamos un DIV como contenedor para controlar mejor el tamaño de la imagen
+            const leaf = document.createElement('div');
             leaf.className = 'falling-leaf';
-            leaf.textContent = '🍂';
+
+            // Asume que la imagen de la hoja se llama 'leaf.png' y usa la clase 'pixel-icon'
+            // (Asegúrate de tener esta imagen en la carpeta 'img/')
+            //leaf.innerHTML = '<img src="img/leaf.png" alt="hoja cayendo" class="pixel-icon">';
+
             leaf.style.left = `${Math.random() * 100}%`;
 
             const baseDuration = Math.random() * 5 + 10;
             leaf.style.setProperty('--base-leaf-fall-duration', `${baseDuration}s`);
 
             leaf.style.animationDuration = `var(--base-leaf-fall-duration)`;
-
             leaf.style.animationDelay = `${Math.random() * 15}s`;
-            leaf.style.fontSize = `${Math.random() * 0.5 + 1}rem`;
+
+            // *** CÓDIGO RANDOMIZACIÓN DE TAMAÑO ***
+            const randomSize = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+
+            // Aplicamos el tamaño usando width y height, como solicitaste.
+            // Esto dimensionará el contenedor y la imagen se ajustará gracias al CSS de .pixel-icon.
+            leaf.style.width = `${randomSize}px`;
+            leaf.style.height = `${randomSize}px`;
+            // *** FIN CÓDIGO RANDOMIZACIÓN ***
+
             container.appendChild(leaf);
         }
     }
@@ -1000,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 50; i++) {
             const leaf = document.createElement('div');
             leaf.className = 'wind-leaf';
-            leaf.textContent = '🍂';
+            //leaf.textContent = '🍂';
 
             leaf.style.setProperty('--start-y', `${Math.random() * 100}vw`);
             leaf.style.animationDuration = `${Math.random() * 3.5 + 1.5}s`;
@@ -1039,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.add('unlocked');
             }
             item.innerHTML = `
-                <span class="achievement-icon">${ach.unlocked ? ach.icon : '❓'}</span>
+                <span class="achievement-icon">${ach.unlocked ? ach.icon : getIcon('interrogacion')}</span>
                 <div class="achievement-info">
                     <strong>${ach.unlocked ? ach.name : 'Logro Oculto'}</strong>
                     <div class="desc">${ach.unlocked ? ach.desc : 'Sigue jugando para desbloquear.'}</div>
@@ -1080,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function spawnGoldenLeaf() {
         const leaf = document.createElement('div');
         leaf.className = 'golden-leaf';
-        leaf.textContent = '🍂';
+        //leaf.textContent = '🍂';
 
         const startX = Math.random() * 80 + 10;
         const sway = (Math.random() - 0.5) * 2;
@@ -1113,11 +1176,15 @@ document.addEventListener('DOMContentLoaded', () => {
             leaves += reward;
             totalLeavesCollected += reward;
             totalLeavesPrestige += reward;
-            showNotification('¡Hoja Dorada!', `+${formatNumber(reward)} hojas`, '✨');
+            showNotification(
+                '¡Hoja Dorada!',
+                `+${formatNumber(reward)} hojas`,
+                '<img src="img/leaf.png" class="pixel-icon golden-filter">'
+            );
             showFloatingNumber(reward, event.target);
         } else {
             boostEndTime = Date.now() + 15000;
-            showNotification('¡Frenesí de Clics!', `¡Tus clics valen x${clickFrenzyMultiplier} por 15s!`, '⚡');
+            showNotification('¡Frenesí de Clics!', `¡Tus clics valen x${clickFrenzyMultiplier} por 15s!`, getIcon('cohete'));
         }
         updateUI();
     }
@@ -1146,29 +1213,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const roll = Math.random();
 
         if (roll < 0.50) { // 50% - Nada
-            showNotification("¡Vaya!", "La cesta estaba vacía...", '💨');
+            showNotification("¡Vaya!", "La cesta estaba vacía...", getIcon('viento'));
 
         } else if (roll < 0.75) { // 25% - Hojas (1 min de HPS)
             const reward = Math.floor(leavesPerSecond * 60 * goldenLeafRewardMultiplier);
             leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
-            showNotification("¡Algo es algo!", `¡La cesta contenía ${formatNumber(reward)} hojas!`, '💰');
+            showNotification("¡Algo es algo!", `¡La cesta contenía ${formatNumber(reward)} hojas!`, getIcon('bolsa_dinero'));
 
         } else if (roll < 0.90) { // 15% - Hojas (20 mins de HPS)
             const reward = Math.floor(leavesPerSecond * 1200 * goldenLeafRewardMultiplier);
             leaves += reward; totalLeavesCollected += reward; totalLeavesPrestige += reward;
-            showNotification("¡Premio!", `¡La cesta contenía ${formatNumber(reward)} hojas!`, '💰');
+            showNotification("¡Premio!", `¡La cesta contenía ${formatNumber(reward)} hojas!`, getIcon('bolsa_dinero'));
 
         } else if (roll < 0.95) { // 5% - Frenesí (15s)
             boostEndTime = Date.now() + 15000; // 15 segundos
-            showNotification("¡Frenesí!", `¡Clics x${clickFrenzyMultiplier} por 15 segundos!`, '⚡');
+            showNotification("¡Frenesí!", `¡Clics x${clickFrenzyMultiplier} por 15 segundos!`, getIcon('cohete'));
 
-        } else { // 5% - 1 Bellota (solo si ya has hecho prestigio)
-            if (bellotas > 0 || totalLeavesPrestige >= PRESTIGE_REQ) {
-                bellotas++;
-                showNotification("¡Increíble!", `¡Has encontrado 1 Bellota Dorada! 🌰`, '🌰');
-            } else {
-                showNotification("¡Vaya!", "La cesta estaba vacía...", '💨'); // Falla si no puedes ganar bellotas
-            }
+        } else { // 5% - 1 Bellota 
+            bellotas++;
+            showNotification("¡Increíble!", `¡Has encontrado 1 Bellota Dorada!`, getIcon('bellota'));
         }
         updateUI();
     }
@@ -1204,7 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentWeatherEvent = event;
         eventEndTime = Date.now() + (event.duration * 1000);
 
-        weatherEventBar.textContent = `${event.name}: ${event.text}`;
+        weatherEventBar.innerHTML = `${event.name}: ${event.text}`;
         weatherEventBar.className = event.id;
 
         // --- Lógica para mostrar efectos Y SONIDOS ---
@@ -1253,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!prestigePanel.classList.contains('hidden')) {
             const bellotasToGain = calculateBellotasToGain();
             prestigeTotalLeavesDisplay.textContent = formatNumber(totalLeavesPrestige);
-            prestigeGainDisplay.textContent = `${formatNumber(bellotasToGain)} 🌰`;
+            prestigeGainDisplay.innerHTML = `${formatNumber(bellotasToGain)} ${getIcon('bellota')}`;
 
             if (totalLeavesPrestige >= PRESTIGE_REQ) {
                 prestigeResetButton.disabled = false;
@@ -1295,7 +1358,7 @@ document.addEventListener('DOMContentLoaded', () => {
             info.innerHTML = `
                 <strong>${pu.name} ${maxLevelText}</strong>
                 <div class="details">${pu.desc} (Nivel ${pu.count})</div>
-                <div class="details bellota">Coste: ${cost} 🌰</div>
+                <div class="details bellota">Coste: ${cost} ${getIcon('bellota')}</div>
             `;
 
             const button = document.createElement('button');

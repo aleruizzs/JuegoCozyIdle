@@ -37,7 +37,8 @@
                     <div id="leaf-count" class="stat-display">0</div>
                     <div class="stat-label">hojas recogidas</div>
 
-                    <div id="bellota-count" class="stat-display bellota">0</div>
+                    <div id="bellota-count" class="stat-display bellota">0 <img src="img/bellota.png"
+                            class="pixel-icon"></div>
                     <div class="stat-label bellota">bellotas</div>
 
                     <div id="hps-count" class="stat-display">0.0</div>
@@ -48,8 +49,9 @@
             </div>
 
             <div class="clicker-area">
-                <button id="clicker-button" class="clicker-button"
-                    data-tooltip="¡Haz clic para recoger hojas!">🍂</button>
+                <button id="clicker-button" class="clicker-button" data-tooltip="¡Haz clic para recoger hojas!">
+                    <img src="img/leaf.png" alt="Hoja Principal">
+                </button>
                 <div id="boost-timer" class="hidden"></div>
             </div>
 
@@ -98,7 +100,7 @@
             <div id="prestige-panel" class="tab-panel hidden">
                 <div class="prestige-info">
                     <h3>Prestigio</h3>
-                    <p>Reinicia tu progreso (hojas y mejoras) para ganar <strong>Bellotas Doradas</strong> (🌰).</p>
+                    <p>Reinicia tu progreso (hojas y mejoras) para ganar <strong>Bellotas Doradas</strong>.</p>
                     <p>Cada Bellota Dorada te da un <strong>+1%</strong> de bonus permanente a toda la producción
                         (acumulativo).</p>
                     <p>Necesitas <strong>100 Millones</strong> de hojas (total en esta partida) para reiniciar.</p>
@@ -113,10 +115,12 @@
             </div>
 
             <div class="audio-controls">
-                <button id="music-toggle" class="audio-btn" data-tooltip="Activar/Desactivar Música">Música: 🎵</button>
-                <button id="sfx-toggle" class="audio-btn" data-tooltip="Activar/Desactivar Sonidos">Sonidos: 🔊</button>
+                <button id="music-toggle" class="audio-btn" data-tooltip="Activar/Desactivar Música"><img
+                        src="img/musicactive.png" class="pixel-icon"></button>
+                <button id="sfx-toggle" class="audio-btn" data-tooltip="Activar/Desactivar Sonidos"><img
+                        src="img/sonidosactive.png" class="pixel-icon"></button>
                 <button id="settings-toggle" class="audio-btn" aria-label="Abrir configuración"
-                    data-tooltip="Configuración">⚙️</button>
+                    data-tooltip="Configuración"><img src="img/engranaje.png" class="pixel-icon"></button>
             </div>
         </div>
     </div>
